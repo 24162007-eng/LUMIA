@@ -58,4 +58,11 @@
     <string name="go_current_location">Dùng vị trí hiện tại</string>
     <string name="settings_speed_slow">Chậm</string>
     <string name="settings_speed_fast">Nhanh</string>
+    <string name="see_ready">Bấm Bắt đầu nhận diện để mở camera.</string>
+    <string name="see_start">Bắt đầu nhận diện</string>
+    <string name="see_retry">Thử lại</string>
+    <string name="see_scanning">Đang nhận diện…</string>
+    <string name="see_detected">Kết quả nhận diện:\n%1$s</string>
+    <string name="see_no_result">Chưa nhận diện được vật thể.</string>
+    <string name="see_camera_error">Camera hoặc nhận diện gặp lỗi. Hãy thử lại.</string>
 </resources>
