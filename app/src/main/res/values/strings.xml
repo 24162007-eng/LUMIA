@@ -1,3 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LUMIA</string>
+    <string name="home_see">Nhận diện xung quanh</string>
+    <string name="home_ocr">Đọc văn bản</string>
+    <string name="home_alert">Cảnh báo vật cản</string>
+    <string name="home_go">Dẫn đường</string>
+    <string name="home_community">Cộng đồng</string>
+    <string name="home_settings">Cài đặt</string>
+    <string name="home_voice">Nói lệnh</string>
+
+    <string name="settings_reading_speed">Tốc độ đọc</string>
+    <string name="settings_voice_preview">Thử giọng đọc</string>
+    <string name="settings_vibration">Rung khi thao tác</string>
+    <string name="settings_sound">Âm thanh phản hồi</string>
+    <string name="settings_high_contrast">Chữ lớn, tương phản cao</string>
+    <string name="settings_voice_sample">Xin chào, tôi là LUMIA. Đây là giọng đọc thử.</string>
+    <string name="settings_voice_unavailable">Chưa phát được giọng tiếng Việt. Hãy thử lại hoặc kiểm tra giọng đọc trên thiết bị.</string>
+    <string name="feature_pending">Tính năng này đang được tích hợp.</string>
+    <string name="home_prompt">Bạn muốn làm gì?</string>
+    <string name="home_report">Báo cáo vật cản</string>
+    <string name="home_detect_obstacles">Phát hiện vật cản</string>
+
+    <string name="screen_back">Quay lại màn hình chính</string>
+    <string name="see_title">Nhận diện</string>
+    <string name="see_camera_hint">Hướng camera vào vật thể,\nrồi nhấn Chụp ảnh</string>
+    <string name="see_result_sample">Ví dụ: Phía trước có một cái bàn, trên bàn có một chai nước.</string>
+    <string name="see_confidence_sample">Mức tin cậy: Cao</string>
+    <string name="see_capture">Chụp ảnh</string>
+    <string name="see_repeat">Nghe lại</string>
+    <string name="alert_camera_hint">Hướng camera về phía trước</string>
+    <string name="alert_left">Trái</string>
+    <string name="alert_center">Giữa</string>
+    <string name="alert_right">Phải</string>
+    <string name="alert_sample">Ví dụ: Có xe đạp phía trước</string>
+    <string name="alert_start">Bắt đầu</string>
+    <string name="alert_stop">Dừng</string>
+    <string name="alert_note">LUMIA hỗ trợ cảnh báo, không đảm bảo an toàn tuyệt đối</string>
+    <string name="go_destination">Bạn muốn đến đâu?</string>
+    <string name="go_destination_voice">Nhập điểm đến bằng giọng nói</string>
+    <string name="go_map_preview">Bản đồ và tuyến đường</string>
+    <string name="go_instruction_sample">Ví dụ: Đi thẳng 30 mét</string>
+    <string name="go_distance_sample">Còn 150 m đến Thư viện</string>
+    <string name="go_repeat">Nghe lại chỉ dẫn</string>
+    <string name="go_stop">Dừng dẫn đường</string>
+    <string name="community_report_one">Lối đi bị chặn</string>
+    <string name="community_place_one">Trước thư viện</string>
+    <string name="community_report_two">Thang máy hỏng</string>
+    <string name="community_place_two">Tòa nhà B</string>
+    <string name="community_sample">Báo cáo mẫu · Đã xác nhận</string>
+    <string name="community_send">Gửi báo cáo</string>
+    <string name="permission_camera_reason">LUMIA cần camera để nhận diện vật thể và cảnh báo vật cản.</string>
+    <string name="permission_microphone_reason">LUMIA cần micro để nhận lệnh hoặc nhập điểm đến bằng giọng nói.</string>
+    <string name="permission_location_reason">LUMIA cần vị trí khi bạn muốn dùng vị trí hiện tại để dẫn đường.</string>
+    <string name="permission_continue">Tiếp tục</string>
+    <string name="permission_granted_pending">Đã cấp quyền. Tính năng này đang được tích hợp.</string>
+    <string name="permission_denied">Chưa cấp quyền. Bạn vẫn có thể dùng các mục khác hoặc cấp quyền cho LUMIA trong Cài đặt Android.</string>
+    <string name="go_current_location">Dùng vị trí hiện tại</string>
+    <string name="settings_speed_slow">Chậm</string>
+    <string name="settings_speed_fast">Nhanh</string>
 </resources>

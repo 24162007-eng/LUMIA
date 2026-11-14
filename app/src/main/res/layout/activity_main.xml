@@ -1,19 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#F3F8F6"
+    android:fillViewport="true"
     tools:context=".MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:orientation="vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:background="#123B36"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/app_name"
+                android:textColor="#FFFFFF"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/btnSettings"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/home_settings"
+                app:srcCompat="@drawable/ic_lumia_settings" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:accessibilityHeading="true"
+                android:text="@string/home_prompt"
+                android:textColor="#123B36"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSee"
+                    style="@style/Widget.Lumia.HomeTile"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/home_see"
+                    app:backgroundTint="#4B9ED8" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnOcr"
+                    style="@style/Widget.Lumia.HomeTile"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/home_ocr"
+                    app:backgroundTint="#8875CF" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAlert"
+                    style="@style/Widget.Lumia.HomeTile"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/home_detect_obstacles"
+                    app:backgroundTint="#38CDA5" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGo"
+                    style="@style/Widget.Lumia.HomeTile"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/home_go"
+                    app:backgroundTint="#4B9ED8" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReport"
+                    style="@style/Widget.Lumia.HomeTile"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/home_report"
+                    app:backgroundTint="#38CDA5" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCommunity"
+                    style="@style/Widget.Lumia.HomeTile"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/home_community"
+                    app:backgroundTint="#38CDA5" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnVoice"
+                android:layout_width="136dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="54dp"
+                android:minHeight="136dp"
+                android:background="@drawable/bg_lumia_voice"
+                android:drawableTop="@drawable/ic_lumia_mic"
+                android:drawablePadding="8dp"
+                android:gravity="center"
+                android:paddingStart="10dp"
+                android:paddingTop="30dp"
+                android:paddingEnd="10dp"
+                android:paddingBottom="24dp"
+                android:text="@string/home_voice"
+                android:textAllCaps="false"
+                android:textColor="#123B36"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
