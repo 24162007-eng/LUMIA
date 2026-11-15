@@ -43,8 +43,11 @@ dependencies {
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
 
-    // Google ML Kit
+    // Google ML Kit - Image Labeling
     implementation(libs.mlkit.image.labeling)
+
+    // Google ML Kit - Object Detection
+    implementation(libs.mlkit.objectDetection)
 
     // Firebase
     implementation(platform(libs.firebase.bom))

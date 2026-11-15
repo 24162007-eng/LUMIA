@@ -32,14 +32,14 @@ public class SeeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_see);
 
-        // Anh xa giao dien
+        // Ánh xạ giao diện
         previewView = findViewById(R.id.cameraPreview);
         tvDetectionResult = findViewById(R.id.tvDetectionResult);
 
-        // Khoi tao CameraService
+        // Khởi tạo CameraService
         cameraService = new CameraService(this);
 
-        // Dang ky yeu cau quyen camera
+        // Xử lý yêu cầu quyền camera
         requestPermission = registerForActivityResult(
                 new ActivityResultContracts.RequestPermission(),
                 isGranted -> {
@@ -48,7 +48,7 @@ public class SeeActivity extends AppCompatActivity {
                     } else {
                         Toast.makeText(
                                 this,
-                                "Can cap quyen camera de su dung",
+                                "Cần cấp quyền camera để sử dụng",
                                 Toast.LENGTH_LONG
                         ).show();
 
@@ -57,15 +57,13 @@ public class SeeActivity extends AppCompatActivity {
                 }
         );
 
-        // Nut quay lai
-        findViewById(R.id.btnCloseCamera)
-                .setOnClickListener(v -> finish());
+        // Nút đóng camera
+        findViewById(R.id.btnCloseCamera).setOnClickListener(v -> finish());
 
-        // Kiem tra quyen camera
         checkCameraPermission();
     }
 
-    // Kiem tra quyen camera
+    // Kiểm tra quyền camera
     private void checkCameraPermission() {
 
         if (ContextCompat.checkSelfPermission(
@@ -76,13 +74,11 @@ public class SeeActivity extends AppCompatActivity {
             startCamera();
 
         } else {
-            requestPermission.launch(
-                    Manifest.permission.CAMERA
-            );
+            requestPermission.launch(Manifest.permission.CAMERA);
         }
     }
 
-    // Khoi dong camera va nhan dien lien tuc
+    // Khởi động camera và nhận diện
     private void startCamera() {
 
         tvDetectionResult.setText("Đang nhận diện...");
@@ -90,33 +86,45 @@ public class SeeActivity extends AppCompatActivity {
         cameraService.startCamera(
                 this,
                 previewView,
-                new CameraService.OnLabelsDetectedListener() {
+                new CameraService.OnDetectionResultsListener() {
 
                     @Override
-                    public void onLabelsDetected(List<String> labels) {
+                    public void onDetectionResults(
+                            List<String> labels,
+                            List<String> objects
+                    ) {
 
                         runOnUiThread(() -> {
 
-                            if (labels == null || labels.isEmpty()) {
-                                tvDetectionResult.setText(
-                                        "Chưa nhận diện được vật thể."
-                                );
-                                return;
-                            }
-
                             StringBuilder result = new StringBuilder();
 
-                            result.append("Phát hiện:\n");
+                            // Kết quả Image Labeling
+                            result.append("IMAGE LABELING\n");
 
-                            for (String label : labels) {
-                                result.append("• ")
-                                        .append(label)
-                                        .append("\n");
+                            if (labels == null || labels.isEmpty()) {
+                                result.append("Chưa nhận diện được nội dung.\n");
+                            } else {
+                                for (String label : labels) {
+                                    result.append("• ")
+                                            .append(label)
+                                            .append("\n");
+                                }
                             }
 
-                            tvDetectionResult.setText(
-                                    result.toString()
-                            );
+                            // Kết quả Object Detection
+                            result.append("\nOBJECT DETECTION\n");
+
+                            if (objects == null || objects.isEmpty()) {
+                                result.append("Chưa phát hiện đối tượng.\n");
+                            } else {
+                                for (String object : objects) {
+                                    result.append("• ")
+                                            .append(object)
+                                            .append("\n");
+                                }
+                            }
+
+                            tvDetectionResult.setText(result.toString());
                         });
                     }
 

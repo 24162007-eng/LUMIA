@@ -2,6 +2,7 @@
 package com.example.lumia.services;
 
 import android.content.Context;
+import android.graphics.Rect;
 
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
@@ -13,11 +14,20 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+
 import com.google.mlkit.vision.common.InputImage;
+
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
 import com.google.mlkit.vision.label.ImageLabeling;
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
+
+import com.google.mlkit.vision.objects.DetectedObject;
+import com.google.mlkit.vision.objects.ObjectDetection;
+import com.google.mlkit.vision.objects.ObjectDetector;
+import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,53 +36,84 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import androidx.camera.core.ExperimentalGetImage;
+
 public class CameraService {
 
     private final Context context;
     private final ExecutorService cameraExecutor;
+
+    // Image Labeling
     private final ImageLabeler imageLabeler;
-    private final AtomicBoolean isProcessing = new AtomicBoolean(false);
+
+    // Object Detection
+    private final ObjectDetector objectDetector;
+
+    private final AtomicBoolean isProcessing =
+            new AtomicBoolean(false);
 
     private ProcessCameraProvider cameraProvider;
 
-    private OnLabelsDetectedListener listener;
+    private OnDetectionResultsListener listener;
 
     private long lastDetectionTime = 0;
     private String lastResult = "";
 
     private static final long DETECTION_INTERVAL = 700;
 
-    public interface OnLabelsDetectedListener {
-        void onLabelsDetected(List<String> labels);
+    public interface OnDetectionResultsListener {
+
+        void onDetectionResults(
+                List<String> labels,
+                List<String> objects
+        );
+
         void onError(String error);
     }
 
     public CameraService(Context context) {
+
         this.context = context.getApplicationContext();
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
+        // Khởi tạo Image Labeling
         imageLabeler = ImageLabeling.getClient(
                 ImageLabelerOptions.DEFAULT_OPTIONS
         );
+
+        // Khởi tạo Object Detection
+        ObjectDetectorOptions options =
+                new ObjectDetectorOptions.Builder()
+                        .setDetectorMode(
+                                ObjectDetectorOptions.STREAM_MODE
+                        )
+                        .enableClassification()
+                        .build();
+
+        objectDetector = ObjectDetection.getClient(options);
     }
 
     // Khởi động camera
+    @ExperimentalGetImage
     public void startCamera(
             LifecycleOwner lifecycleOwner,
             PreviewView previewView,
-            OnLabelsDetectedListener listener
+            OnDetectionResultsListener listener
     ) {
+
         this.listener = listener;
 
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
                 ProcessCameraProvider.getInstance(context);
 
         cameraProviderFuture.addListener(() -> {
+
             try {
+
                 cameraProvider = cameraProviderFuture.get();
 
-                // Hiển thị camera preview
+                // Camera Preview
                 Preview preview = new Preview.Builder()
                         .build();
 
@@ -96,7 +137,6 @@ public class CameraService {
                 CameraSelector cameraSelector =
                         CameraSelector.DEFAULT_BACK_CAMERA;
 
-                // Kết nối camera với Activity
                 cameraProvider.unbindAll();
 
                 cameraProvider.bindToLifecycle(
@@ -107,18 +147,22 @@ public class CameraService {
                 );
 
             } catch (ExecutionException | InterruptedException e) {
-                if (listener != null) {
-                    listener.onError(
-                            "Không thể khởi động camera: " + e.getMessage()
+
+                if (this.listener != null) {
+                    this.listener.onError(
+                            "Không thể khởi động camera: "
+                                    + e.getMessage()
                     );
                 }
 
                 if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
                 }
+
             } catch (Exception e) {
-                if (listener != null) {
-                    listener.onError(
+
+                if (this.listener != null) {
+                    this.listener.onError(
                             "Lỗi camera: " + e.getMessage()
                     );
                 }
@@ -127,11 +171,21 @@ public class CameraService {
         }, ContextCompat.getMainExecutor(context));
     }
 
-    // Phân tích từng khung hình camera
+    // Phân tích một khung hình bằng cả hai mô hình
+    @ExperimentalGetImage
     private void analyzeImage(ImageProxy imageProxy) {
 
         if (!isProcessing.compareAndSet(false, true)) {
             imageProxy.close();
+            return;
+        }
+
+        long currentTime = System.currentTimeMillis();
+
+        // Giới hạn tần suất nhận diện
+        if (currentTime - lastDetectionTime < DETECTION_INTERVAL) {
+            imageProxy.close();
+            isProcessing.set(false);
             return;
         }
 
@@ -143,73 +197,140 @@ public class CameraService {
             return;
         }
 
+        lastDetectionTime = currentTime;
+
         InputImage inputImage = InputImage.fromMediaImage(
                 mediaImage,
                 imageProxy.getImageInfo().getRotationDegrees()
         );
 
-        imageLabeler.process(inputImage)
+        // Mô hình 1: Image Labeling
+        Task<List<ImageLabel>> labelingTask =
+                imageLabeler.process(inputImage);
 
-                .addOnSuccessListener(labels -> {
+        // Mô hình 2: Object Detection
+        Task<List<DetectedObject>> detectionTask =
+                objectDetector.process(inputImage);
 
-                    long currentTime = System.currentTimeMillis();
+        // Chờ cả hai mô hình hoàn thành
+        Tasks.whenAllComplete(labelingTask, detectionTask)
+                .addOnCompleteListener(task -> {
 
-                    // Chỉ cập nhật kết quả sau khoảng nghỉ
-                    if (currentTime - lastDetectionTime
-                            < DETECTION_INTERVAL) {
-                        return;
-                    }
+                    try {
 
-                    List<String> results = new ArrayList<>();
+                        List<String> labelResults =
+                                new ArrayList<>();
 
-                    for (ImageLabel label : labels) {
+                        List<String> objectResults =
+                                new ArrayList<>();
 
-                        // Chỉ lấy kết quả có độ tin cậy từ 60%
-                        if (label.getConfidence() >= 0.60f) {
+                        // Lấy kết quả Image Labeling
+                        if (labelingTask.isSuccessful()) {
 
-                            String result =
-                                    label.getText() + " - "
+                            List<ImageLabel> labels =
+                                    labelingTask.getResult();
+
+                            for (ImageLabel label : labels) {
+
+                                if (label.getConfidence() >= 0.60f) {
+
+                                    String result =
+                                            label.getText() + " - "
+                                                    + Math.round(
+                                                    label.getConfidence() * 100
+                                            ) + "%";
+
+                                    labelResults.add(result);
+                                }
+
+                                if (labelResults.size() >= 3) {
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Lấy kết quả Object Detection
+                        if (detectionTask.isSuccessful()) {
+
+                            List<DetectedObject> detectedObjects =
+                                    detectionTask.getResult();
+
+                            for (DetectedObject object : detectedObjects) {
+
+                                Rect box = object.getBoundingBox();
+
+                                String objectName = "Chưa phân loại";
+
+                                String confidence = "";
+
+                                // Lấy nhãn phân loại
+                                if (!object.getLabels().isEmpty()) {
+
+                                    DetectedObject.Label label =
+                                            object.getLabels().get(0);
+
+                                    objectName = label.getText();
+
+                                    confidence = " - "
                                             + Math.round(
                                             label.getConfidence() * 100
                                     ) + "%";
+                                }
 
-                            results.add(result);
+                                String result =
+                                        objectName + confidence
+                                                + " | Vị trí: ("
+                                                + box.left + ", "
+                                                + box.top + ") - ("
+                                                + box.right + ", "
+                                                + box.bottom + ")";
+
+                                objectResults.add(result);
+                            }
                         }
 
-                        // Tối đa 3 nhãn
-                        if (results.size() >= 3) {
-                            break;
-                        }
-                    }
+                        // Gửi kết quả về Activity
+                        String currentResult =
+                                labelResults.toString()
+                                        + objectResults.toString();
 
-                    if (!results.isEmpty()) {
-
-                        String currentResult = results.toString();
-
-                        // Chỉ gửi kết quả khi nội dung thay đổi
                         if (!currentResult.equals(lastResult)) {
 
                             lastResult = currentResult;
-                            lastDetectionTime = currentTime;
 
                             if (listener != null) {
-                                listener.onLabelsDetected(results);
+                                if (labelingTask.isSuccessful()
+                                        && detectionTask.isSuccessful()) {
+
+                                    listener.onDetectionResults(
+                                            labelResults,
+                                            objectResults
+                                    );
+
+                                } else if (!labelingTask.isSuccessful()) {
+
+                                    listener.onError(
+                                            "Image Labeling lỗi: "
+                                                    + labelingTask.getException()
+                                    );
+
+                                } else {
+
+                                    listener.onError(
+                                            "Object Detection lỗi: "
+                                                    + detectionTask.getException()
+                                    );
+                                }
                             }
                         }
-                    }
-                })
 
-                .addOnFailureListener(e -> {
-                    if (listener != null) {
-                        listener.onError(
-                                "Không thể nhận diện: " + e.getMessage()
-                        );
-                    }
-                })
+                    } finally {
 
-                .addOnCompleteListener(task -> {
-                    imageProxy.close();
-                    isProcessing.set(false);
+                        // Chỉ đóng ảnh sau khi cả hai mô hình hoàn thành
+                        imageProxy.close();
+
+                        isProcessing.set(false);
+                    }
                 });
     }
 
@@ -228,6 +349,8 @@ public class CameraService {
         stopCamera();
 
         imageLabeler.close();
+
+        objectDetector.close();
 
         cameraExecutor.shutdown();
 

@@ -7,12 +7,12 @@ appcompat = "1.6.1"
 material = "1.10.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.1.4"
+# Google ML Kit
+mlkitImageLabeling = "17.0.9"
+mlkitObjectDetection = "17.0.2"
 
 # CameraX
 camerax = "1.6.2"
-
-# Google ML Kit
-mlkitImageLabeling = "17.0.9"
 
 # Firebase
 firebaseBom = "35.1.0"
@@ -36,6 +36,9 @@ camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "
 
 # Google ML Kit - Image Labeling
 mlkit-image-labeling = { group = "com.google.mlkit", name = "image-labeling", version.ref = "mlkitImageLabeling" }
+
+# Google ML Kit - Object Detection
+mlkit-objectDetection = { group = "com.google.mlkit", name = "object-detection", version.ref = "mlkitObjectDetection" }
 
 # Firebase
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
