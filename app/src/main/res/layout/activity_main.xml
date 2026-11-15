@@ -7,6 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/btnMic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nói lệnh"
+        android:contentDescription="Nhấn để nói lệnh" />
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
