@@ -1,3 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">LUMIA</string>
+
+    <!-- COMMUNITY Module Strings -->
+    <string name="community_title">Tạo báo cáo vật cản</string>
+    <string name="obstacle_type_label">Loại vật cản</string>
+    <string name="obstacle_type_pothole">Ổ gà</string>
+    <string name="obstacle_type_construction">Công trình</string>
+    <string name="obstacle_type_stairs">Cầu thang</string>
+    <string name="obstacle_type_other">Vật cản khác</string>
+
+    <string name="description_label">Mô tả vật cản</string>
+    <string name="description_hint">Nhập chi tiết về vật cản...</string>
+    <string name="coordinates_label">Tọa độ vật cản</string>
+    <string name="latitude_hint">Vĩ độ (Latitude)</string>
+    <string name="longitude_hint">Kinh độ (Longitude)</string>
+    <string name="btn_get_mock_location">Lấy tọa độ mẫu (Test)</string>
+    <string name="timestamp_label">Thời gian tạo: %s</string>
+    <string name="btn_submit_report">Gửi báo cáo</string>
+
+    <string name="toast_empty_fields">Vui lòng nhập đầy đủ thông tin mô tả và tọa độ!</string>
+    <string name="toast_invalid_coordinates">Tọa độ nhập vào không hợp lệ!</string>
+    <string name="toast_report_success">Gửi báo cáo vật cản thành công!</string>
+    <string name="toast_report_failure">Gửi báo cáo thất bại: %s</string>
+    <string name="submitting_report">Đang gửi báo cáo...</string>
+
+    <string-array name="obstacle_types">
+        <item>@string/obstacle_type_pothole</item>
+        <item>@string/obstacle_type_construction</item>
+        <item>@string/obstacle_type_stairs</item>
+        <item>@string/obstacle_type_other</item>
+    </string-array>
 </resources>
