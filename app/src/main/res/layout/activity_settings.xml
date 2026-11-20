@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/featureRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F3F8F6"
+    android:orientation="vertical"
+    tools:context=".SettingsActivity">
+
+    <LinearLayout
+        android:id="@+id/featureToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#123B36"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:orientation="horizontal"
+        android:paddingStart="4dp"
+        android:paddingEnd="16dp">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnFeatureBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/screen_back"
+            app:srcCompat="@drawable/ic_lumia_back" />
+
+        <TextView
+            style="@style/Widget.Lumia.FeatureHeading"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:accessibilityHeading="true"
+            android:text="@string/home_settings"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/featureScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/labelReadingSpeed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
+                android:text="@string/settings_reading_speed"
+                android:textColor="#123B36"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <SeekBar
+                android:id="@+id/seekReadingSpeed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/settings_reading_speed"
+                android:minHeight="48dp"
+                android:max="100"
+                android:progress="50"
+                android:progressTint="#123B36"
+                android:thumbTint="#123B36" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:importantForAccessibility="noHideDescendants"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/Widget.Lumia.FeatureCaption"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/settings_speed_slow" />
+
+                <TextView
+                    style="@style/Widget.Lumia.FeatureCaption"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="@string/settings_speed_fast" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVoicePreview"
+                style="@style/Widget.Lumia.FeatureAction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="@string/settings_voice_preview" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchVibration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:minHeight="56dp"
+                android:text="@string/settings_vibration"
+                android:textColor="#123B36"
+                android:textSize="16sp"
+                app:thumbTint="@color/settings_switch_thumb"
+                app:trackTint="@color/settings_switch_track" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchSound"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:minHeight="56dp"
+                android:text="@string/settings_sound"
+                android:textColor="#123B36"
+                android:textSize="16sp"
+                app:thumbTint="@color/settings_switch_thumb"
+                app:trackTint="@color/settings_switch_track" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchHighContrast"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="56dp"
+                android:text="@string/settings_high_contrast"
+                android:textColor="#123B36"
+                android:textSize="16sp"
+                app:thumbTint="@color/settings_switch_thumb"
+                app:trackTint="@color/settings_switch_track" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
