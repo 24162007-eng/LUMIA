@@ -20,15 +20,24 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.common.util.concurrent.ListenableFuture;
 
 import com.google.mlkit.vision.common.InputImage;
+
+// Image Labeling
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
 import com.google.mlkit.vision.label.ImageLabeling;
 import com.google.mlkit.vision.label.defaults.ImageLabelerOptions;
 
+// Object Detection
 import com.google.mlkit.vision.objects.DetectedObject;
 import com.google.mlkit.vision.objects.ObjectDetection;
 import com.google.mlkit.vision.objects.ObjectDetector;
 import com.google.mlkit.vision.objects.defaults.ObjectDetectorOptions;
+
+// Text Recognition (OCR)
+import com.google.mlkit.vision.text.Text;
+import com.google.mlkit.vision.text.TextRecognition;
+import com.google.mlkit.vision.text.TextRecognizer;
+import com.google.mlkit.vision.text.latin.TextRecognizerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,8 +52,10 @@ public class CameraService {
     private final Context context;
     private final ExecutorService cameraExecutor;
 
+    // Ba mô hình AI
     private final ImageLabeler imageLabeler;
     private final ObjectDetector objectDetector;
+    private final TextRecognizer textRecognizer;
 
     private final AtomicBoolean isProcessing =
             new AtomicBoolean(false);
@@ -62,28 +73,31 @@ public class CameraService {
 
     private static final long DETECTION_INTERVAL = 700;
 
+    // Interface trả kết quả của cả ba mô hình
     public interface OnDetectionResultsListener {
 
         void onDetectionResults(
                 List<String> labels,
-                List<String> objects
+                List<String> objects,
+                String recognizedText
         );
 
         void onError(String error);
     }
 
+    // Constructor
     public CameraService(Context context) {
 
         this.context = context.getApplicationContext();
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
-        // Khởi tạo Image Labeling
+        // 1. Khởi tạo Image Labeling
         imageLabeler = ImageLabeling.getClient(
                 ImageLabelerOptions.DEFAULT_OPTIONS
         );
 
-        // Khởi tạo Object Detection
+        // 2. Khởi tạo Object Detection
         ObjectDetectorOptions options =
                 new ObjectDetectorOptions.Builder()
                         .setDetectorMode(
@@ -93,6 +107,11 @@ public class CameraService {
                         .build();
 
         objectDetector = ObjectDetection.getClient(options);
+
+        // 3. Khởi tạo Text Recognition (OCR)
+        textRecognizer = TextRecognition.getClient(
+                TextRecognizerOptions.DEFAULT_OPTIONS
+        );
     }
 
     // Khởi động camera
@@ -170,7 +189,7 @@ public class CameraService {
         }, ContextCompat.getMainExecutor(context));
     }
 
-    // Phân tích một khung hình bằng cả hai mô hình
+    // Phân tích một khung hình bằng cả ba mô hình
     private void analyzeImage(ImageProxy imageProxy) {
 
         if (released ||
@@ -201,40 +220,57 @@ public class CameraService {
 
         lastDetectionTime = currentTime;
 
-        InputImage inputImage = InputImage.fromMediaImage(
-                mediaImage,
-                imageProxy.getImageInfo().getRotationDegrees()
-        );
+        try {
 
-        // Image Labeling
-        Task<List<ImageLabel>> labelingTask =
-                imageLabeler.process(inputImage);
+            // Chuyển hình ảnh camera thành InputImage
+            InputImage inputImage = InputImage.fromMediaImage(
+                    mediaImage,
+                    imageProxy.getImageInfo().getRotationDegrees()
+            );
 
-        // Object Detection
-        Task<List<DetectedObject>> detectionTask =
-                objectDetector.process(inputImage);
+            // Mô hình 1: Image Labeling
+            Task<List<ImageLabel>> labelingTask =
+                    imageLabeler.process(inputImage);
 
-        // Chờ cả hai mô hình hoàn thành
-        Tasks.whenAllComplete(labelingTask, detectionTask)
-                .addOnCompleteListener(task -> {
+            // Mô hình 2: Object Detection
+            Task<List<DetectedObject>> detectionTask =
+                    objectDetector.process(inputImage);
 
-                    try {
+            // Mô hình 3: Text Recognition (OCR)
+            Task<Text> textTask =
+                    textRecognizer.process(inputImage);
 
-                        if (released) {
-                            return;
-                        }
+            // Chờ cả ba mô hình hoàn thành
+            Tasks.whenAllComplete(
+                    labelingTask,
+                    detectionTask,
+                    textTask
+            ).addOnCompleteListener(task -> {
 
-                        List<String> labelResults =
-                                new ArrayList<>();
+                try {
 
-                        List<String> objectResults =
-                                new ArrayList<>();
+                    if (released) {
+                        return;
+                    }
 
-                        // Lấy kết quả Image Labeling
-                        if (labelingTask.isSuccessful()) {
+                    List<String> labelResults =
+                            new ArrayList<>();
 
-                            List<ImageLabel> labels =
-                                    labelingTask.getResult();
+                    List<String> objectResults =
+                            new ArrayList<>();
+
+                    String recognizedText = "";
+
+                    // =================================
+                    // 1. IMAGE LABELING
+                    // =================================
+
+                    if (labelingTask.isSuccessful()) {
+
+                        List<ImageLabel> labels =
+                                labelingTask.getResult();
+
+                        if (labels != null) {
 
                             for (ImageLabel label : labels) {
 
@@ -254,12 +290,18 @@ public class CameraService {
                                 }
                             }
                         }
+                    }
 
-                        // Lấy kết quả Object Detection
-                        if (detectionTask.isSuccessful()) {
+                    // =================================
+                    // 2. OBJECT DETECTION
+                    // =================================
 
-                            List<DetectedObject> detectedObjects =
-                                    detectionTask.getResult();
+                    if (detectionTask.isSuccessful()) {
+
+                        List<DetectedObject> detectedObjects =
+                                detectionTask.getResult();
+
+                        if (detectedObjects != null) {
 
                             for (DetectedObject object : detectedObjects) {
 
@@ -292,51 +334,98 @@ public class CameraService {
                                 objectResults.add(result);
                             }
                         }
+                    }
 
-                        // Kiểm tra lỗi của hai mô hình
-                        if (!labelingTask.isSuccessful()) {
+                    // =================================
+                    // 3. TEXT RECOGNITION (OCR)
+                    // =================================
 
-                            notifyError(
-                                    "Image Labeling lỗi: "
-                                            + labelingTask.getException()
-                            );
+                    if (textTask.isSuccessful()) {
 
-                        } else if (!detectionTask.isSuccessful()) {
+                        Text textResult = textTask.getResult();
 
-                            notifyError(
-                                    "Object Detection lỗi: "
-                                            + detectionTask.getException()
-                            );
+                        if (textResult != null) {
 
-                        } else {
+                            recognizedText =
+                                    textResult.getText().trim();
+                        }
+                    }
 
-                            String currentResult =
-                                    labelResults.toString()
-                                            + objectResults.toString();
+                    // =================================
+                    // KIỂM TRA LỖI
+                    // =================================
 
-                            // Chỉ gửi kết quả khi nội dung thay đổi
-                            if (!currentResult.equals(lastResult)) {
+                    if (!labelingTask.isSuccessful()) {
 
-                                lastResult = currentResult;
+                        notifyError(
+                                "Image Labeling lỗi: "
+                                        + labelingTask.getException()
+                        );
 
-                                if (listener != null) {
+                    } else if (!detectionTask.isSuccessful()) {
 
-                                    listener.onDetectionResults(
-                                            labelResults,
-                                            objectResults
-                                    );
-                                }
+                        notifyError(
+                                "Object Detection lỗi: "
+                                        + detectionTask.getException()
+                        );
+
+                    } else if (!textTask.isSuccessful()) {
+
+                        notifyError(
+                                "Text Recognition lỗi: "
+                                        + textTask.getException()
+                        );
+
+                    } else {
+
+                        // Gộp kết quả của ba mô hình
+                        String currentResult =
+                                labelResults.toString()
+                                        + objectResults.toString()
+                                        + recognizedText;
+
+                        // Chỉ gửi kết quả khi nội dung thay đổi
+                        if (!currentResult.equals(lastResult)) {
+
+                            lastResult = currentResult;
+
+                            if (listener != null) {
+
+                                listener.onDetectionResults(
+                                        labelResults,
+                                        objectResults,
+                                        recognizedText
+                                );
                             }
                         }
-
-                    } finally {
-
-                        // Đóng frame sau khi cả hai mô hình hoàn tất
-                        imageProxy.close();
-
-                        isProcessing.set(false);
                     }
-                });
+
+                } catch (Exception e) {
+
+                    notifyError(
+                            "Lỗi xử lý kết quả nhận diện: "
+                                    + e.getMessage()
+                    );
+
+                } finally {
+
+                    // Đóng frame sau khi ba mô hình hoàn tất
+                    imageProxy.close();
+
+                    isProcessing.set(false);
+                }
+            });
+
+        } catch (Exception e) {
+
+            imageProxy.close();
+            isProcessing.set(false);
+
+            notifyError(
+                    "Không thể phân tích hình ảnh: "
+                            + e.getMessage()
+            );
+        }
     }
 
     // Gửi lỗi về Activity
@@ -377,6 +466,7 @@ public class CameraService {
 
         imageLabeler.close();
         objectDetector.close();
+        textRecognizer.close();
 
         cameraExecutor.shutdown();
     }

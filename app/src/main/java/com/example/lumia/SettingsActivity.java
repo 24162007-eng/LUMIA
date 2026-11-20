@@ -1,3 +1,4 @@
+
 package com.example.lumia;
 
 import android.content.SharedPreferences;
@@ -7,7 +8,10 @@ import android.widget.Toast;
 
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.example.lumia.services.SpeechService;
+
 public class SettingsActivity extends FeatureActivity {
+
     private SpeechService speechService;
 
     @Override
@@ -15,61 +19,125 @@ public class SettingsActivity extends FeatureActivity {
         super.onCreate(savedInstanceState);
         showFeature(R.layout.activity_settings);
 
-        SharedPreferences preferences = getSharedPreferences("lumia_settings", MODE_PRIVATE);
+        SharedPreferences preferences = getSharedPreferences(
+                "lumia_settings",
+                MODE_PRIVATE
+        );
 
+        // Tốc độ đọc
         SeekBar readingSpeed = findViewById(R.id.seekReadingSpeed);
-        readingSpeed.setProgress(preferences.getInt("reading_speed", 50));
-        readingSpeed.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    preferences.edit().putInt("reading_speed", progress).apply();
+
+        readingSpeed.setProgress(
+                preferences.getInt("reading_speed", 50)
+        );
+
+        readingSpeed.setOnSeekBarChangeListener(
+                new SeekBar.OnSeekBarChangeListener() {
+                    @Override
+                    public void onProgressChanged(
+                            SeekBar seekBar,
+                            int progress,
+                            boolean fromUser
+                    ) {
+                        if (fromUser) {
+                            preferences.edit()
+                                    .putInt("reading_speed", progress)
+                                    .apply();
+                        }
+                    }
+
+                    @Override
+                    public void onStartTrackingTouch(SeekBar seekBar) {
+                    }
+
+                    @Override
+                    public void onStopTrackingTouch(SeekBar seekBar) {
+                    }
                 }
-            }
+        );
 
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-            }
+        // Lưu trạng thái các công tắc
+        saveSwitch(
+                R.id.switchVibration,
+                preferences,
+                "vibration",
+                true
+        );
 
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-            }
-        });
+        saveSwitch(
+                R.id.switchSound,
+                preferences,
+                "sound",
+                true
+        );
 
-        saveSwitch(R.id.switchVibration, preferences, "vibration", true);
-        saveSwitch(R.id.switchSound, preferences, "sound", true);
-        saveSwitch(R.id.switchHighContrast, preferences, "high_contrast", false);
+        saveSwitch(
+                R.id.switchHighContrast,
+                preferences,
+                "high_contrast",
+                false
+        );
 
+        // Khởi tạo dịch vụ đọc văn bản
         speechService = new SpeechService(this);
+
+        // Nút thử giọng đọc
         findViewById(R.id.btnVoicePreview).setOnClickListener(view -> {
+
             float rate = 0.5f + readingSpeed.getProgress() / 100f;
+
             speechService.setRate(rate);
 
-            if (!speechService.speak(getString(R.string.settings_voice_sample))) {
-                Toast.makeText(this, R.string.settings_voice_unavailable, Toast.LENGTH_LONG).show();
+            boolean success = speechService.speak(
+                    getString(R.string.settings_voice_sample)
+            );
+
+            if (!success) {
+                Toast.makeText(
+                        this,
+                        R.string.settings_voice_unavailable,
+                        Toast.LENGTH_LONG
+                ).show();
             }
         });
     }
 
+    // Lưu trạng thái Switch
     private void saveSwitch(
-            int viewId, SharedPreferences preferences, String key, boolean defaultValue
+            int viewId,
+            SharedPreferences preferences,
+            String key,
+            boolean defaultValue
     ) {
         SwitchCompat toggle = findViewById(viewId);
-        toggle.setChecked(preferences.getBoolean(key, defaultValue));
+
+        toggle.setChecked(
+                preferences.getBoolean(key, defaultValue)
+        );
+
         toggle.setOnCheckedChangeListener((button, checked) ->
-                preferences.edit().putBoolean(key, checked).apply()
+                preferences.edit()
+                        .putBoolean(key, checked)
+                        .apply()
         );
     }
 
     @Override
     protected void onStop() {
-        speechService.stop();
+        if (speechService != null) {
+            speechService.stop();
+        }
+
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
-        speechService.close();
+        if (speechService != null) {
+            speechService.close();
+            speechService = null;
+        }
+
         super.onDestroy();
     }
 }

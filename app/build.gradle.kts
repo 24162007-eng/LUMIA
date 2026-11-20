@@ -46,6 +46,9 @@ dependencies {
     // Google ML Kit - Image Labeling
     implementation(libs.mlkit.image.labeling)
 
+    // Google ML Kit - Text Recognition (OCR)
+    implementation(libs.mlkit.text.recognition)
+
     // Google ML Kit - Object Detection
     implementation(libs.mlkit.objectDetection)
 
