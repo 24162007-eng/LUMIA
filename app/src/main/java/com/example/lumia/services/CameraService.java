@@ -3,8 +3,10 @@ package com.example.lumia.services;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.media.Image;
 
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ExperimentalGetImage;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
@@ -13,12 +15,11 @@ import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.common.util.concurrent.ListenableFuture;
 
 import com.google.mlkit.vision.common.InputImage;
-
 import com.google.mlkit.vision.label.ImageLabel;
 import com.google.mlkit.vision.label.ImageLabeler;
 import com.google.mlkit.vision.label.ImageLabeling;
@@ -36,28 +37,28 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import androidx.camera.core.ExperimentalGetImage;
-
+@ExperimentalGetImage
 public class CameraService {
 
     private final Context context;
     private final ExecutorService cameraExecutor;
 
-    // Image Labeling
     private final ImageLabeler imageLabeler;
-
-    // Object Detection
     private final ObjectDetector objectDetector;
 
     private final AtomicBoolean isProcessing =
             new AtomicBoolean(false);
 
     private ProcessCameraProvider cameraProvider;
+    private ImageAnalysis imageAnalysis;
+    private Preview preview;
 
     private OnDetectionResultsListener listener;
 
     private long lastDetectionTime = 0;
     private String lastResult = "";
+
+    private boolean released = false;
 
     private static final long DETECTION_INTERVAL = 700;
 
@@ -95,87 +96,86 @@ public class CameraService {
     }
 
     // Khởi động camera
-    @ExperimentalGetImage
     public void startCamera(
             LifecycleOwner lifecycleOwner,
             PreviewView previewView,
             OnDetectionResultsListener listener
     ) {
 
+        if (released) {
+            return;
+        }
+
         this.listener = listener;
 
-        ListenableFuture<ProcessCameraProvider> cameraProviderFuture =
+        ListenableFuture<ProcessCameraProvider> future =
                 ProcessCameraProvider.getInstance(context);
 
-        cameraProviderFuture.addListener(() -> {
+        future.addListener(() -> {
+
+            if (released || this.listener != listener) {
+                return;
+            }
 
             try {
 
-                cameraProvider = cameraProviderFuture.get();
+                cameraProvider = future.get();
 
                 // Camera Preview
-                Preview preview = new Preview.Builder()
-                        .build();
+                preview = new Preview.Builder().build();
 
                 preview.setSurfaceProvider(
                         previewView.getSurfaceProvider()
                 );
 
-                // Phân tích hình ảnh liên tục
-                ImageAnalysis imageAnalysis =
-                        new ImageAnalysis.Builder()
-                                .setBackpressureStrategy(
-                                        ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
-                                )
-                                .build();
+                // Phân tích hình ảnh
+                imageAnalysis = new ImageAnalysis.Builder()
+                        .setBackpressureStrategy(
+                                ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
+                        )
+                        .build();
 
                 imageAnalysis.setAnalyzer(
                         cameraExecutor,
                         this::analyzeImage
                 );
 
-                CameraSelector cameraSelector =
+                CameraSelector selector =
                         CameraSelector.DEFAULT_BACK_CAMERA;
 
                 cameraProvider.unbindAll();
 
                 cameraProvider.bindToLifecycle(
                         lifecycleOwner,
-                        cameraSelector,
+                        selector,
                         preview,
                         imageAnalysis
                 );
 
             } catch (ExecutionException | InterruptedException e) {
 
-                if (this.listener != null) {
-                    this.listener.onError(
-                            "Không thể khởi động camera: "
-                                    + e.getMessage()
-                    );
-                }
-
                 if (e instanceof InterruptedException) {
                     Thread.currentThread().interrupt();
                 }
 
+                notifyError(
+                        "Không thể khởi động camera: " + e.getMessage()
+                );
+
             } catch (Exception e) {
 
-                if (this.listener != null) {
-                    this.listener.onError(
-                            "Lỗi camera: " + e.getMessage()
-                    );
-                }
+                notifyError("Lỗi camera: " + e.getMessage());
             }
 
         }, ContextCompat.getMainExecutor(context));
     }
 
     // Phân tích một khung hình bằng cả hai mô hình
-    @ExperimentalGetImage
     private void analyzeImage(ImageProxy imageProxy) {
 
-        if (!isProcessing.compareAndSet(false, true)) {
+        if (released ||
+                !isProcessing.compareAndSet(false, true)) {
+
             imageProxy.close();
             return;
         }
@@ -184,14 +184,16 @@ public class CameraService {
 
         // Giới hạn tần suất nhận diện
         if (currentTime - lastDetectionTime < DETECTION_INTERVAL) {
+
             imageProxy.close();
             isProcessing.set(false);
             return;
         }
 
-        android.media.Image mediaImage = imageProxy.getImage();
+        Image mediaImage = imageProxy.getImage();
 
         if (mediaImage == null) {
+
             imageProxy.close();
             isProcessing.set(false);
             return;
@@ -204,11 +206,11 @@ public class CameraService {
                 imageProxy.getImageInfo().getRotationDegrees()
         );
 
-        // Mô hình 1: Image Labeling
+        // Image Labeling
         Task<List<ImageLabel>> labelingTask =
                 imageLabeler.process(inputImage);
 
-        // Mô hình 2: Object Detection
+        // Object Detection
         Task<List<DetectedObject>> detectionTask =
                 objectDetector.process(inputImage);
 
@@ -217,6 +219,10 @@ public class CameraService {
                 .addOnCompleteListener(task -> {
 
                     try {
+
+                        if (released) {
+                            return;
+                        }
 
                         List<String> labelResults =
                                 new ArrayList<>();
@@ -260,10 +266,8 @@ public class CameraService {
                                 Rect box = object.getBoundingBox();
 
                                 String objectName = "Chưa phân loại";
-
                                 String confidence = "";
 
-                                // Lấy nhãn phân loại
                                 if (!object.getLabels().isEmpty()) {
 
                                     DetectedObject.Label label =
@@ -289,36 +293,37 @@ public class CameraService {
                             }
                         }
 
-                        // Gửi kết quả về Activity
-                        String currentResult =
-                                labelResults.toString()
-                                        + objectResults.toString();
+                        // Kiểm tra lỗi của hai mô hình
+                        if (!labelingTask.isSuccessful()) {
 
-                        if (!currentResult.equals(lastResult)) {
+                            notifyError(
+                                    "Image Labeling lỗi: "
+                                            + labelingTask.getException()
+                            );
 
-                            lastResult = currentResult;
+                        } else if (!detectionTask.isSuccessful()) {
 
-                            if (listener != null) {
-                                if (labelingTask.isSuccessful()
-                                        && detectionTask.isSuccessful()) {
+                            notifyError(
+                                    "Object Detection lỗi: "
+                                            + detectionTask.getException()
+                            );
+
+                        } else {
+
+                            String currentResult =
+                                    labelResults.toString()
+                                            + objectResults.toString();
+
+                            // Chỉ gửi kết quả khi nội dung thay đổi
+                            if (!currentResult.equals(lastResult)) {
+
+                                lastResult = currentResult;
+
+                                if (listener != null) {
 
                                     listener.onDetectionResults(
                                             labelResults,
                                             objectResults
-                                    );
-
-                                } else if (!labelingTask.isSuccessful()) {
-
-                                    listener.onError(
-                                            "Image Labeling lỗi: "
-                                                    + labelingTask.getException()
-                                    );
-
-                                } else {
-
-                                    listener.onError(
-                                            "Object Detection lỗi: "
-                                                    + detectionTask.getException()
                                     );
                                 }
                             }
@@ -326,7 +331,7 @@ public class CameraService {
 
                     } finally {
 
-                        // Chỉ đóng ảnh sau khi cả hai mô hình hoàn thành
+                        // Đóng frame sau khi cả hai mô hình hoàn tất
                         imageProxy.close();
 
                         isProcessing.set(false);
@@ -334,26 +339,45 @@ public class CameraService {
                 });
     }
 
+    // Gửi lỗi về Activity
+    private void notifyError(String error) {
+
+        if (listener != null && !released) {
+            listener.onError(error);
+        }
+    }
+
     // Dừng camera
     public void stopCamera() {
+
+        if (imageAnalysis != null) {
+            imageAnalysis.clearAnalyzer();
+            imageAnalysis = null;
+        }
 
         if (cameraProvider != null) {
             cameraProvider.unbindAll();
             cameraProvider = null;
         }
+
+        preview = null;
+        listener = null;
     }
 
     // Giải phóng tài nguyên
     public void release() {
 
+        if (released) {
+            return;
+        }
+
+        released = true;
+
         stopCamera();
 
         imageLabeler.close();
-
         objectDetector.close();
 
         cameraExecutor.shutdown();
-
-        listener = null;
     }
 }
