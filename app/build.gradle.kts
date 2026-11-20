@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.lumia"
-        minSdk = 23
+        minSdk = 24
         targetSdk = 37
         versionCode = 1
         versionName = "1.0"
@@ -37,10 +37,23 @@ dependencies {
     implementation(libs.appcompat)
     implementation(libs.constraintlayout)
     implementation(libs.material)
+
+    // CameraX
     implementation(libs.camera.camera2)
     implementation(libs.camera.lifecycle)
     implementation(libs.camera.view)
+
+    // Google ML Kit - Image Labeling
     implementation(libs.mlkit.image.labeling)
+
+    // Google ML Kit - Object Detection
+    implementation(libs.mlkit.objectDetection)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.espresso.core)
     androidTestImplementation(libs.ext.junit)

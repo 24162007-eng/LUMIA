@@ -1,6 +1,10 @@
+
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+
     <string name="app_name">LUMIA</string>
+
+    <!-- HOME -->
     <string name="home_see">Nhận diện xung quanh</string>
     <string name="home_ocr">Đọc văn bản</string>
     <string name="home_alert">Cảnh báo vật cản</string>
@@ -8,7 +12,11 @@
     <string name="home_community">Cộng đồng</string>
     <string name="home_settings">Cài đặt</string>
     <string name="home_voice">Nói lệnh</string>
+    <string name="home_prompt">Bạn muốn làm gì?</string>
+    <string name="home_report">Báo cáo vật cản</string>
+    <string name="home_detect_obstacles">Phát hiện vật cản</string>
 
+    <!-- SETTINGS -->
     <string name="settings_reading_speed">Tốc độ đọc</string>
     <string name="settings_voice_preview">Thử giọng đọc</string>
     <string name="settings_vibration">Rung khi thao tác</string>
@@ -16,18 +24,29 @@
     <string name="settings_high_contrast">Chữ lớn, tương phản cao</string>
     <string name="settings_voice_sample">Xin chào, tôi là LUMIA. Đây là giọng đọc thử.</string>
     <string name="settings_voice_unavailable">Chưa phát được giọng tiếng Việt. Hãy thử lại hoặc kiểm tra giọng đọc trên thiết bị.</string>
-    <string name="feature_pending">Tính năng này đang được tích hợp.</string>
-    <string name="home_prompt">Bạn muốn làm gì?</string>
-    <string name="home_report">Báo cáo vật cản</string>
-    <string name="home_detect_obstacles">Phát hiện vật cản</string>
+    <string name="settings_speed_slow">Chậm</string>
+    <string name="settings_speed_fast">Nhanh</string>
 
+    <!-- COMMON -->
+    <string name="feature_pending">Tính năng này đang được tích hợp.</string>
     <string name="screen_back">Quay lại màn hình chính</string>
+
+    <!-- SEE / CAMERA -->
     <string name="see_title">Nhận diện</string>
     <string name="see_camera_hint">Hướng camera vào vật thể,\nrồi nhấn Chụp ảnh</string>
     <string name="see_result_sample">Ví dụ: Phía trước có một cái bàn, trên bàn có một chai nước.</string>
     <string name="see_confidence_sample">Mức tin cậy: Cao</string>
     <string name="see_capture">Chụp ảnh</string>
     <string name="see_repeat">Nghe lại</string>
+    <string name="see_ready">Bấm Bắt đầu nhận diện để mở camera.</string>
+    <string name="see_start">Bắt đầu nhận diện</string>
+    <string name="see_retry">Thử lại</string>
+    <string name="see_scanning">Đang nhận diện…</string>
+    <string name="see_detected">Kết quả nhận diện:\n%1$s</string>
+    <string name="see_no_result">Chưa nhận diện được vật thể.</string>
+    <string name="see_camera_error">Camera hoặc nhận diện gặp lỗi. Hãy thử lại.</string>
+
+    <!-- ALERT -->
     <string name="alert_camera_hint">Hướng camera về phía trước</string>
     <string name="alert_left">Trái</string>
     <string name="alert_center">Giữa</string>
@@ -36,6 +55,8 @@
     <string name="alert_start">Bắt đầu</string>
     <string name="alert_stop">Dừng</string>
     <string name="alert_note">LUMIA hỗ trợ cảnh báo, không đảm bảo an toàn tuyệt đối</string>
+
+    <!-- GO / NAVIGATION -->
     <string name="go_destination">Bạn muốn đến đâu?</string>
     <string name="go_destination_voice">Nhập điểm đến bằng giọng nói</string>
     <string name="go_map_preview">Bản đồ và tuyến đường</string>
@@ -43,26 +64,53 @@
     <string name="go_distance_sample">Còn 150 m đến Thư viện</string>
     <string name="go_repeat">Nghe lại chỉ dẫn</string>
     <string name="go_stop">Dừng dẫn đường</string>
+    <string name="go_current_location">Dùng vị trí hiện tại</string>
+
+    <!-- COMMUNITY - SAMPLE -->
     <string name="community_report_one">Lối đi bị chặn</string>
     <string name="community_place_one">Trước thư viện</string>
     <string name="community_report_two">Thang máy hỏng</string>
     <string name="community_place_two">Tòa nhà B</string>
     <string name="community_sample">Báo cáo mẫu · Đã xác nhận</string>
     <string name="community_send">Gửi báo cáo</string>
+
+    <!-- COMMUNITY - REPORT FORM -->
+    <string name="community_title">Tạo báo cáo vật cản</string>
+    <string name="obstacle_type_label">Loại vật cản</string>
+    <string name="obstacle_type_pothole">Ổ gà</string>
+    <string name="obstacle_type_construction">Công trình</string>
+    <string name="obstacle_type_stairs">Cầu thang</string>
+    <string name="obstacle_type_other">Vật cản khác</string>
+
+    <string name="description_label">Mô tả vật cản</string>
+    <string name="description_hint">Nhập chi tiết về vật cản...</string>
+    <string name="coordinates_label">Tọa độ vật cản</string>
+    <string name="latitude_hint">Vĩ độ (Latitude)</string>
+    <string name="longitude_hint">Kinh độ (Longitude)</string>
+    <string name="btn_get_mock_location">Lấy tọa độ mẫu (Test)</string>
+    <string name="timestamp_label">Thời gian tạo: %s</string>
+    <string name="btn_submit_report">Gửi báo cáo</string>
+
+    <string name="toast_empty_fields">Vui lòng nhập đầy đủ thông tin mô tả và tọa độ!</string>
+    <string name="toast_invalid_coordinates">Tọa độ nhập vào không hợp lệ!</string>
+    <string name="toast_report_success">Gửi báo cáo vật cản thành công!</string>
+    <string name="toast_report_failure">Gửi báo cáo thất bại: %s</string>
+    <string name="submitting_report">Đang gửi báo cáo...</string>
+
+    <!-- PERMISSIONS -->
     <string name="permission_camera_reason">LUMIA cần camera để nhận diện vật thể và cảnh báo vật cản.</string>
     <string name="permission_microphone_reason">LUMIA cần micro để nhận lệnh hoặc nhập điểm đến bằng giọng nói.</string>
     <string name="permission_location_reason">LUMIA cần vị trí khi bạn muốn dùng vị trí hiện tại để dẫn đường.</string>
     <string name="permission_continue">Tiếp tục</string>
     <string name="permission_granted_pending">Đã cấp quyền. Tính năng này đang được tích hợp.</string>
     <string name="permission_denied">Chưa cấp quyền. Bạn vẫn có thể dùng các mục khác hoặc cấp quyền cho LUMIA trong Cài đặt Android.</string>
-    <string name="go_current_location">Dùng vị trí hiện tại</string>
-    <string name="settings_speed_slow">Chậm</string>
-    <string name="settings_speed_fast">Nhanh</string>
-    <string name="see_ready">Bấm Bắt đầu nhận diện để mở camera.</string>
-    <string name="see_start">Bắt đầu nhận diện</string>
-    <string name="see_retry">Thử lại</string>
-    <string name="see_scanning">Đang nhận diện…</string>
-    <string name="see_detected">Kết quả nhận diện:\n%1$s</string>
-    <string name="see_no_result">Chưa nhận diện được vật thể.</string>
-    <string name="see_camera_error">Camera hoặc nhận diện gặp lỗi. Hãy thử lại.</string>
+
+    <!-- COMMUNITY ARRAY -->
+    <string-array name="obstacle_types">
+        <item>@string/obstacle_type_pothole</item>
+        <item>@string/obstacle_type_construction</item>
+        <item>@string/obstacle_type_stairs</item>
+        <item>@string/obstacle_type_other</item>
+    </string-array>
+
 </resources>

@@ -1,106 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/featureRoot"
-    android:background="#F3F8F6"
-    tools:context=".CommunityActivity">
+    android:background="@color/bg_community"
+    android:fillViewport="true">
+
     <LinearLayout
-        android:id="@+id/featureToolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#123B36"
-        android:gravity="center_vertical"
-        android:minHeight="64dp"
-        android:paddingStart="4dp"
-        android:paddingEnd="16dp">
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/btnFeatureBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/screen_back"
-            app:srcCompat="@drawable/ic_lumia_back" />
-        <TextView
-            style="@style/Widget.Lumia.FeatureHeading"
-            android:text="@string/home_community"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:accessibilityHeading="true"
-            android:textColor="#FFFFFF" />
-    </LinearLayout>
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <ScrollView
-        android:id="@+id/featureScroll"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true">
+        <!-- Title Header -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:text="@string/community_title"
+            android:textColor="@color/text_primary"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Obstacle Type Section -->
+        <TextView
+            android:id="@+id/tvObstacleTypeLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="@string/obstacle_type_label"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerObstacleType"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp"
+            android:entries="@array/obstacle_types"
+            android:padding="8dp" />
+
+        <!-- Description Section -->
+        <TextView
+            android:id="@+id/tvDescriptionLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="@string/description_label"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="top|start"
+            android:hint="@string/description_hint"
+            android:inputType="textMultiLine"
+            android:minLines="3"
+            android:padding="12dp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="#88123B36"
+            android:textSize="15sp" />
+
+        <!-- Coordinates Section -->
+        <TextView
+            android:id="@+id/tvCoordinatesLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:text="@string/coordinates_label"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
-            <LinearLayout
-                android:layout_width="match_parent"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/edtLatitude"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_feature_card"
-                android:padding="16dp"
-                android:layout_marginTop="0dp"
-                android:minHeight="190dp">
-                <TextView
-                    style="@style/Widget.Lumia.FeatureHeading"
-                    android:text="@string/community_report_one" />
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp" />
-                <TextView
-                    style="@style/Widget.Lumia.FeatureText"
-                    android:text="@string/community_place_one" />
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="24dp" />
-                <TextView
-                    style="@style/Widget.Lumia.FeatureCaption"
-                    android:text="@string/community_sample" />
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:hint="@string/latitude_hint"
+                android:inputType="numberDecimal|numberSigned"
+                android:padding="12dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="#88123B36"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/edtLongitude"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_feature_card"
-                android:padding="16dp"
-                android:layout_marginTop="16dp"
-                android:minHeight="190dp">
-                <TextView
-                    style="@style/Widget.Lumia.FeatureHeading"
-                    android:text="@string/community_report_two" />
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="20dp" />
-                <TextView
-                    style="@style/Widget.Lumia.FeatureText"
-                    android:text="@string/community_place_two" />
-                <Space
-                    android:layout_width="match_parent"
-                    android:layout_height="24dp" />
-                <TextView
-                    style="@style/Widget.Lumia.FeatureCaption"
-                    android:text="@string/community_sample" />
-            </LinearLayout>
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="88dp" />
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSendReport"
-                style="@style/Widget.Lumia.FeatureAction"
-                android:text="@string/community_send" />
+                android:layout_weight="1"
+                android:hint="@string/longitude_hint"
+                android:inputType="numberDecimal|numberSigned"
+                android:padding="12dp"
+                android:textColor="@color/text_primary"
+                android:textColorHint="#88123B36"
+                android:textSize="14sp" />
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+
+        <Button
+            android:id="@+id/btnGetMockLocation"
+            style="?android:attr/borderlessButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:text="@string/btn_get_mock_location"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <!-- Timestamp Display -->
+        <TextView
+            android:id="@+id/tvTimestamp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp" />
+
+        <!-- Submit Button -->
+        <Button
+            android:id="@+id/btnSubmitReport"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:backgroundTint="@color/btn_action_bg"
+            android:text="@string/btn_submit_report"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+</ScrollView>
