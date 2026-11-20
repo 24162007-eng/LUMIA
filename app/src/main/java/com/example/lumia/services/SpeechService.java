@@ -1,81 +1,117 @@
+
 package com.example.lumia.services;
 
 import android.content.Context;
-import android.content.Intent;
 import android.speech.tts.TextToSpeech;
-import android.util.Log;
+
 import java.util.Locale;
 
-public class SpeechService implements TextToSpeech.OnInitListener {
-    private static final String TAG = "SpeechService";
-    private static SpeechService instance;
+public class SpeechService {
 
-    private final Context appContext;
-    private TextToSpeech tts;
+    private TextToSpeech engine;
     private boolean ready = false;
-    private String lastText = "";
-    private String pendingText = null;   // câu gọi speak() trước khi TTS khởi tạo xong
+    private String lastText;
+    private String pendingText;
 
-    // Singleton: mọi module dùng chung một TextToSpeech
-    public static synchronized SpeechService getInstance(Context context) {
-        if (instance == null) {
-            instance = new SpeechService(context.getApplicationContext());
-        }
-        return instance;
+    public SpeechService(Context context) {
+
+        engine = new TextToSpeech(
+                context.getApplicationContext(),
+                status -> {
+
+                    if (status == TextToSpeech.SUCCESS && engine != null) {
+
+                        int languageResult = engine.setLanguage(
+                                Locale.forLanguageTag("vi-VN")
+                        );
+
+                        ready = languageResult >= 0;
+
+                        // Phát nội dung đã yêu cầu trước khi TTS sẵn sàng
+                        if (ready && pendingText != null) {
+                            String text = pendingText;
+                            pendingText = null;
+                            speakNow(text);
+                        }
+                    }
+                }
+        );
     }
 
-    private SpeechService(Context context) {
-        this.appContext = context;
-        tts = new TextToSpeech(context, this);
-    }
+    // Đọc một đoạn văn bản
+    public boolean speak(String text) {
 
-    @Override
-    public void onInit(int status) {
-        if (status != TextToSpeech.SUCCESS) {
-            Log.e(TAG, "Khởi tạo TTS thất bại");
-            return;
+        if (text == null || text.trim().isEmpty()) {
+            return false;
         }
-        int result = tts.setLanguage(new Locale("vi", "VN"));
-        if (result == TextToSpeech.LANG_MISSING_DATA
-                || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-            Log.e(TAG, "Thiếu dữ liệu giọng tiếng Việt");
-            // Mở màn hình tải dữ liệu giọng đọc
-            Intent i = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.startActivity(i);
-            return;
-        }
-        ready = true;
-        if (pendingText != null) {
-            speak(pendingText);
-            pendingText = null;
-        }
-    }
 
-    public void speak(String text) {
-        if (text == null || text.trim().isEmpty()) return;
         lastText = text;
-        if (!ready) {            // chưa sẵn sàng thì giữ lại câu cuối
-            pendingText = text;
-            return;
+
+        // Nếu TTS chưa khởi tạo xong thì lưu lại để đọc sau
+        if (engine == null) {
+            return false;
         }
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "lumia-" + System.currentTimeMillis());
+
+        if (!ready) {
+            pendingText = text;
+            return true;
+        }
+
+        return speakNow(text);
     }
 
+    private boolean speakNow(String text) {
+
+        if (engine == null || !ready) {
+            return false;
+        }
+
+        int result = engine.speak(
+                text,
+                TextToSpeech.QUEUE_FLUSH,
+                null,
+                "lumia-speech"
+        );
+
+        return result == TextToSpeech.SUCCESS;
+    }
+
+    // Đọc lại nội dung gần nhất
+    public boolean repeatLast() {
+
+        if (lastText == null || lastText.trim().isEmpty()) {
+            return false;
+        }
+
+        return speak(lastText);
+    }
+
+    // Điều chỉnh tốc độ đọc
+    public void setRate(float rate) {
+
+        if (engine != null && ready) {
+            engine.setSpeechRate(rate);
+        }
+    }
+
+    // Dừng đọc
     public void stop() {
-        if (tts != null) tts.stop();
+
+        if (engine != null) {
+            engine.stop();
+        }
     }
 
-    public void repeatLast() {
-        if (!lastText.isEmpty()) speak(lastText);
-    }
+    // Giải phóng tài nguyên
+    public void close() {
 
-    public boolean isSpeaking() {
-        return tts != null && tts.isSpeaking();
-    }
+        ready = false;
+        pendingText = null;
 
-    public void shutdown() {
-        if (tts != null) { tts.stop(); tts.shutdown(); }
-        instance = null;
+        if (engine != null) {
+            engine.stop();
+            engine.shutdown();
+            engine = null;
+        }
     }
 }

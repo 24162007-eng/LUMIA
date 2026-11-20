@@ -15,6 +15,7 @@ camerax = "1.6.2"
 # Google ML Kit
 mlkitImageLabeling = "17.0.9"
 mlkitObjectDetection = "17.0.2"
+mlkitTextRecognition = "16.0.1"
 
 # Firebase
 firebaseBom = "35.1.0"
@@ -47,6 +48,8 @@ mlkit-objectDetection = { group = "com.google.mlkit", name = "object-detection",
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
 
 
 [plugins]
