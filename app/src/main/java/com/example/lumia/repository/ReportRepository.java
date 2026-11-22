@@ -3,13 +3,19 @@ package com.example.lumia.repository;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.example.lumia.models.ObstacleReport;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +34,11 @@ public class ReportRepository {
 
     public interface ReportCallback {
         void onSuccess(String documentId);
+        void onFailure(Exception e);
+    }
+
+    public interface ReportsListCallback {
+        void onSuccess(List<ObstacleReport> reports);
         void onFailure(Exception e);
     }
 
@@ -82,6 +93,81 @@ public class ReportRepository {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         Log.e(TAG, "createReport:failure", e);
+                        if (callback != null) {
+                            callback.onFailure(e);
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Fetch all obstacle reports realtime from Cloud Firestore ordered by timestamp descending.
+     *
+     * @param callback Callback returning list of reports.
+     */
+    public void getAllReports(final ReportsListCallback callback) {
+        firebaseFirestore.collection(COLLECTION_REPORTS)
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable QuerySnapshot value, @Nullable FirebaseFirestoreException error) {
+                        if (error != null) {
+                            Log.e(TAG, "getAllReports:onEvent failure", error);
+                            if (callback != null) {
+                                callback.onFailure(error);
+                            }
+                            return;
+                        }
+
+                        List<ObstacleReport> reports = new ArrayList<>();
+                        if (value != null) {
+                            for (QueryDocumentSnapshot doc : value) {
+                                ObstacleReport report = doc.toObject(ObstacleReport.class);
+                                if (report.getId() == null || report.getId().isEmpty()) {
+                                    report.setId(doc.getId());
+                                }
+                                reports.add(report);
+                            }
+                        }
+
+                        if (callback != null) {
+                            callback.onSuccess(reports);
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Update status field of an obstacle report on Cloud Firestore.
+     *
+     * @param reportId  Target report document ID.
+     * @param newStatus New status (e.g. "active" or "resolved").
+     * @param callback  Callback to receive status update result.
+     */
+    public void updateReportStatus(String reportId, String newStatus, final ReportCallback callback) {
+        if (reportId == null || reportId.isEmpty()) {
+            if (callback != null) {
+                callback.onFailure(new IllegalArgumentException("Report ID cannot be empty"));
+            }
+            return;
+        }
+
+        firebaseFirestore.collection(COLLECTION_REPORTS)
+                .document(reportId)
+                .update("status", newStatus)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        Log.d(TAG, "updateReportStatus:success, docId: " + reportId);
+                        if (callback != null) {
+                            callback.onSuccess(reportId);
+                        }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "updateReportStatus:failure, docId: " + reportId, e);
                         if (callback != null) {
                             callback.onFailure(e);
                         }

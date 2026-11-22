@@ -96,6 +96,25 @@
     <string name="toast_report_failure">Gửi báo cáo thất bại: %s</string>
     <string name="submitting_report">Đang gửi báo cáo...</string>
 
+    <!-- COMMUNITY - REPORT LIST & DETAILS -->
+    <string name="community_list_title">Danh sách báo cáo cộng đồng</string>
+    <string name="report_status_active">Đang cảnh báo</string>
+    <string name="report_status_resolved">Đã khắc phục</string>
+    <string name="report_detail_title">Chi tiết báo cáo</string>
+    <string name="report_detail_type">Loại vật cản: %s</string>
+    <string name="report_detail_status_prefix">Trạng thái:</string>
+    <string name="report_detail_description">Mô tả: %s</string>
+    <string name="report_detail_coordinates">Tọa độ: %1$s, %2$s</string>
+    <string name="report_detail_timestamp">Thời gian: %s</string>
+    <string name="report_detail_user_id">Người báo cáo: %s</string>
+    <string name="btn_mark_resolved">Đánh dấu đã khắc phục</string>
+    <string name="btn_close">Đóng</string>
+    <string name="toast_status_update_success">Đã cập nhật trạng thái báo cáo thành công!</string>
+    <string name="toast_status_update_failure">Cập nhật trạng thái thất bại: %s</string>
+    <string name="no_reports_available">Chưa có báo cáo nào từ cộng đồng.</string>
+    <string name="loading_reports">Đang tải danh sách báo cáo...</string>
+    <string name="already_resolved">Báo cáo này đã được khắc phục</string>
+
     <!-- PERMISSIONS -->
     <string name="permission_camera_reason">LUMIA cần camera để nhận diện vật thể và cảnh báo vật cản.</string>
     <string name="permission_microphone_reason">LUMIA cần micro để nhận lệnh hoặc nhập điểm đến bằng giọng nói.</string>
