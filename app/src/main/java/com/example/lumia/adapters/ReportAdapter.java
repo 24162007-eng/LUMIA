@@ -1,9 +1,13 @@
 package com.example.lumia.adapters;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -61,6 +65,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
     static class ReportViewHolder extends RecyclerView.ViewHolder {
 
+        private final ImageView ivReportThumbnail;
         private final TextView tvReportType;
         private final TextView tvReportDescription;
         private final TextView tvReportTimestamp;
@@ -68,6 +73,7 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
 
         public ReportViewHolder(@NonNull View itemView) {
             super(itemView);
+            ivReportThumbnail = itemView.findViewById(R.id.ivReportThumbnail);
             tvReportType = itemView.findViewById(R.id.tvReportType);
             tvReportDescription = itemView.findViewById(R.id.tvReportDescription);
             tvReportTimestamp = itemView.findViewById(R.id.tvReportTimestamp);
@@ -82,6 +88,24 @@ public class ReportAdapter extends RecyclerView.Adapter<ReportAdapter.ReportView
                 tvReportTimestamp.setText(dateFormat.format(new Date(report.getTimestamp())));
             } else {
                 tvReportTimestamp.setText("");
+            }
+
+            String imageBase64 = report.getImageBase64();
+            if (imageBase64 != null && !imageBase64.isEmpty()) {
+                try {
+                    byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                    if (bitmap != null) {
+                        ivReportThumbnail.setImageBitmap(bitmap);
+                        ivReportThumbnail.setVisibility(View.VISIBLE);
+                    } else {
+                        ivReportThumbnail.setVisibility(View.GONE);
+                    }
+                } catch (Exception e) {
+                    ivReportThumbnail.setVisibility(View.GONE);
+                }
+            } else {
+                ivReportThumbnail.setVisibility(View.GONE);
             }
 
             boolean isResolved = "resolved".equalsIgnoreCase(report.getStatus());

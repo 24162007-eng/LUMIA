@@ -131,4 +131,31 @@
         <item>@string/obstacle_type_other</item>
     </string-array>
 
+    <!-- COMMUNITY - GPS, IMAGE & FILTERING STRINGS -->
+    <string name="image_label">Hình ảnh vật cản (Không bắt buộc)</string>
+    <string name="btn_pick_image">Chụp / Chọn ảnh</string>
+    <string name="btn_remove_image">Xóa ảnh</string>
+    <string name="btn_get_gps_location">Lấy vị trí GPS hiện tại</string>
+    <string name="gps_fetching">Đang lấy vị trí GPS...</string>
+    <string name="gps_success">Đã lấy vị trí GPS thành công!</string>
+    <string name="gps_permission_denied">Cần cấp quyền vị trí để lấy tọa độ GPS!</string>
+    <string name="gps_error">Không thể lấy vị trí GPS. Vui lòng bật định vị trên thiết bị!</string>
+    <string name="dialog_select_image_title">Chọn hình ảnh vật cản</string>
+    <string name="dialog_select_camera">Chụp ảnh từ Camera</string>
+    <string name="dialog_select_gallery">Chọn ảnh từ Thư viện</string>
+    <string name="filter_label">Lọc danh sách:</string>
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_active">Đang cảnh báo</string>
+    <string name="filter_resolved">Đã khắc phục</string>
+    <string name="filter_nearby">Gần tôi (&lt; 5km)</string>
+    <string name="report_distance_fmt">Cách %.0f m</string>
+    <string name="report_distance_km_fmt">Cách %.1f km</string>
+
+    <string-array name="filter_status_options">
+        <item>@string/filter_all</item>
+        <item>@string/filter_active</item>
+        <item>@string/filter_resolved</item>
+        <item>@string/filter_nearby</item>
+    </string-array>
+
 </resources>
