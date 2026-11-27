@@ -13,6 +13,7 @@ public class ObstacleReport {
     private long timestamp;
     private String userId;
     private String status;
+    private String imageBase64;
 
     /**
      * Default empty constructor required for Firebase Firestore serialization/deserialization.
@@ -22,9 +23,16 @@ public class ObstacleReport {
     }
 
     /**
-     * Full parameterized constructor.
+     * Parameterized constructor without image.
      */
     public ObstacleReport(String id, String type, String description, double latitude, double longitude, long timestamp, String userId, String status) {
+        this(id, type, description, latitude, longitude, timestamp, userId, status, null);
+    }
+
+    /**
+     * Full parameterized constructor including imageBase64.
+     */
+    public ObstacleReport(String id, String type, String description, double latitude, double longitude, long timestamp, String userId, String status, String imageBase64) {
         this.id = id;
         this.type = type;
         this.description = description;
@@ -33,6 +41,7 @@ public class ObstacleReport {
         this.timestamp = timestamp;
         this.userId = userId;
         this.status = status != null ? status : "active";
+        this.imageBase64 = imageBase64;
     }
 
     public String getId() {
@@ -97,5 +106,27 @@ public class ObstacleReport {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getImageBase64() {
+        return imageBase64;
+    }
+
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
+    }
+
+    /**
+     * Alias for imageBase64 to maintain backward compatibility if accessed via imageUrl.
+     */
+    public String getImageUrl() {
+        return imageBase64;
+    }
+
+    /**
+     * Alias for imageBase64 to maintain backward compatibility if set via imageUrl.
+     */
+    public void setImageUrl(String imageUrl) {
+        this.imageBase64 = imageUrl;
     }
 }
