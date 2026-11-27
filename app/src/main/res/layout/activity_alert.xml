@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/featureRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="#F3F8F6"
     tools:context=".AlertActivity">
+
+    <!-- TOOLBAR -->
     <LinearLayout
         android:id="@+id/featureToolbar"
         android:layout_width="match_parent"
@@ -19,6 +21,7 @@
         android:minHeight="64dp"
         android:paddingStart="4dp"
         android:paddingEnd="16dp">
+
         <androidx.appcompat.widget.AppCompatImageButton
             android:id="@+id/btnFeatureBack"
             android:layout_width="48dp"
@@ -26,36 +29,46 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/screen_back"
             app:srcCompat="@drawable/ic_lumia_back" />
+
         <TextView
             style="@style/Widget.Lumia.FeatureHeading"
-            android:text="@string/home_detect_obstacles"
             android:layout_width="0dp"
             android:layout_weight="1"
+            android:text="@string/home_detect_obstacles"
             android:accessibilityHeading="true"
             android:textColor="#FFFFFF" />
+
     </LinearLayout>
 
+    <!-- MAIN CONTENT -->
     <ScrollView
         android:id="@+id/featureScroll"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:fillViewport="true">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
+            <!-- CAMERA AREA -->
             <LinearLayout
+                android:id="@+id/alertCameraContainer"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:orientation="vertical"
                 android:background="@drawable/bg_feature_camera"
                 android:padding="12dp">
+
+                <!-- LEFT / CENTER / RIGHT -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
+
                     <TextView
                         style="@style/Widget.Lumia.FeatureCaption"
                         android:text="@string/alert_left"
@@ -64,6 +77,7 @@
                         android:gravity="center"
                         android:textAlignment="center"
                         android:textColor="#FFFFFF" />
+
                     <TextView
                         style="@style/Widget.Lumia.FeatureCaption"
                         android:text="@string/alert_center"
@@ -72,6 +86,7 @@
                         android:gravity="center"
                         android:textAlignment="center"
                         android:textColor="#FFFFFF" />
+
                     <TextView
                         style="@style/Widget.Lumia.FeatureCaption"
                         android:text="@string/alert_right"
@@ -80,17 +95,35 @@
                         android:gravity="center"
                         android:textAlignment="center"
                         android:textColor="#FFFFFF" />
+
                 </LinearLayout>
-                <TextView
-                    style="@style/Widget.Lumia.FeatureText"
-                    android:text="@string/alert_camera_hint"
-                    android:gravity="center"
-                    android:textAlignment="center"
+
+                <!-- CAMERA PREVIEW -->
+                <androidx.camera.view.PreviewView
+                    android:id="@+id/alertCameraPreview"
+                    android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="#000000" />
+
+                <!-- CAMERA / ALERT STATUS -->
+                <TextView
+                    android:id="@+id/alert_camera_hint"
+                    style="@style/Widget.Lumia.FeatureText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textAlignment="center"
+                    android:text="@string/alert_camera_hint"
                     android:textColor="#FFFFFF" />
+
             </LinearLayout>
+
+            <!-- ALERT RESULT CARD -->
             <LinearLayout
+                android:id="@+id/alertResultCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -99,34 +132,56 @@
                 android:layout_marginTop="12dp"
                 android:minHeight="86dp"
                 android:gravity="center">
+
                 <TextView
+                    android:id="@+id/alertResultText"
                     style="@style/Widget.Lumia.FeatureHeading"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/alert_sample"
                     android:gravity="center"
                     android:textAlignment="center" />
+
             </LinearLayout>
+
+            <!-- SPACE -->
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="20dp" />
+
+            <!-- START BUTTON -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartAlert"
                 style="@style/Widget.Lumia.FeatureAction"
                 android:text="@string/alert_start" />
+
+            <!-- SPACE -->
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="12dp" />
+
+            <!-- STOP BUTTON -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStopAlert"
                 style="@style/Widget.Lumia.FeatureDanger"
                 android:text="@string/alert_stop" />
+
+            <!-- SPACE -->
             <Space
                 android:layout_width="match_parent"
                 android:layout_height="12dp" />
+
+            <!-- NOTE -->
             <TextView
                 style="@style/Widget.Lumia.FeatureCaption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/alert_note"
                 android:gravity="center"
                 android:textAlignment="center" />
+
         </LinearLayout>
+
     </ScrollView>
+
 </LinearLayout>

@@ -1,6 +1,6 @@
-
 package com.example.lumia.services;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Rect;
 import android.media.Image;
@@ -46,6 +46,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@SuppressLint("UnsafeOptInUsageError")
 @ExperimentalGetImage
 public class CameraService {
 
@@ -64,7 +65,11 @@ public class CameraService {
     private ImageAnalysis imageAnalysis;
     private Preview preview;
 
+    // Listener dành cho SEE
     private OnDetectionResultsListener listener;
+
+    // Listener dành riêng cho ALERT
+    private OnAlertDetectionListener alertListener;
 
     private long lastDetectionTime = 0;
     private String lastResult = "";
@@ -73,7 +78,10 @@ public class CameraService {
 
     private static final long DETECTION_INTERVAL = 700;
 
-    // Interface trả kết quả của cả ba mô hình
+// =========================================
+// INTERFACE SEE
+// =========================================
+
     public interface OnDetectionResultsListener {
 
         void onDetectionResults(
@@ -85,19 +93,35 @@ public class CameraService {
         void onError(String error);
     }
 
-    // Constructor
+// =========================================
+// INTERFACE ALERT
+// =========================================
+
+    public interface OnAlertDetectionListener {
+
+        void onAlertObjectsDetected(
+                List<AlertObjectInfo> objects
+        );
+
+        void onError(String error);
+    }
+
+// =========================================
+// CONSTRUCTOR
+// =========================================
+
     public CameraService(Context context) {
 
         this.context = context.getApplicationContext();
 
         cameraExecutor = Executors.newSingleThreadExecutor();
 
-        // 1. Khởi tạo Image Labeling
+// 1. Image Labeling
         imageLabeler = ImageLabeling.getClient(
                 ImageLabelerOptions.DEFAULT_OPTIONS
         );
 
-        // 2. Khởi tạo Object Detection
+// 2. Object Detection
         ObjectDetectorOptions options =
                 new ObjectDetectorOptions.Builder()
                         .setDetectorMode(
@@ -108,13 +132,16 @@ public class CameraService {
 
         objectDetector = ObjectDetection.getClient(options);
 
-        // 3. Khởi tạo Text Recognition (OCR)
+// 3. OCR
         textRecognizer = TextRecognition.getClient(
                 TextRecognizerOptions.DEFAULT_OPTIONS
         );
     }
 
-    // Khởi động camera
+// =========================================
+// START CAMERA - DÀNH CHO SEE
+// =========================================
+
     public void startCamera(
             LifecycleOwner lifecycleOwner,
             PreviewView previewView,
@@ -126,6 +153,7 @@ public class CameraService {
         }
 
         this.listener = listener;
+        this.alertListener = null;
 
         ListenableFuture<ProcessCameraProvider> future =
                 ProcessCameraProvider.getInstance(context);
@@ -140,14 +168,14 @@ public class CameraService {
 
                 cameraProvider = future.get();
 
-                // Camera Preview
+// Camera Preview
                 preview = new Preview.Builder().build();
 
                 preview.setSurfaceProvider(
                         previewView.getSurfaceProvider()
                 );
 
-                // Phân tích hình ảnh
+// Image Analysis
                 imageAnalysis = new ImageAnalysis.Builder()
                         .setBackpressureStrategy(
                                 ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST
@@ -178,18 +206,73 @@ public class CameraService {
                 }
 
                 notifyError(
-                        "Không thể khởi động camera: " + e.getMessage()
+                        "Không thể khởi động camera: "
+                                + e.getMessage()
                 );
 
             } catch (Exception e) {
 
-                notifyError("Lỗi camera: " + e.getMessage());
+                notifyError(
+                        "Lỗi camera: " + e.getMessage()
+                );
             }
 
         }, ContextCompat.getMainExecutor(context));
     }
 
-    // Phân tích một khung hình bằng cả ba mô hình
+// =========================================
+// START CAMERA - DÀNH CHO ALERT
+// =========================================
+
+    public void startAlertCamera(
+            LifecycleOwner lifecycleOwner,
+            PreviewView previewView,
+            OnAlertDetectionListener alertListener
+    ) {
+
+        if (released) {
+            return;
+        }
+
+        this.alertListener = alertListener;
+
+        startCamera(
+                lifecycleOwner,
+                previewView,
+                new OnDetectionResultsListener() {
+
+                    @Override
+                    public void onDetectionResults(
+                            List<String> labels,
+                            List<String> objects,
+                            String recognizedText
+                    ) {
+// ALERT không dùng kết quả tổng hợp SEE.
+                    }
+
+                    @Override
+                    public void onError(String error) {
+
+                        if (CameraService.this.alertListener != null) {
+
+                            CameraService.this.alertListener.onError(
+                                    error
+                            );
+                        }
+                    }
+                }
+        );
+
+// startCamera() reset alertListener.
+// Khôi phục listener ALERT sau khi gọi.
+        this.alertListener = alertListener;
+    }
+
+// =========================================
+// ANALYZE IMAGE
+// =========================================
+
+    @ExperimentalGetImage
     private void analyzeImage(ImageProxy imageProxy) {
 
         if (released ||
@@ -201,8 +284,9 @@ public class CameraService {
 
         long currentTime = System.currentTimeMillis();
 
-        // Giới hạn tần suất nhận diện
-        if (currentTime - lastDetectionTime < DETECTION_INTERVAL) {
+// Giới hạn tần suất nhận diện
+        if (currentTime - lastDetectionTime
+                < DETECTION_INTERVAL) {
 
             imageProxy.close();
             isProcessing.set(false);
@@ -222,25 +306,25 @@ public class CameraService {
 
         try {
 
-            // Chuyển hình ảnh camera thành InputImage
+// Chuyển ảnh camera thành InputImage
             InputImage inputImage = InputImage.fromMediaImage(
                     mediaImage,
                     imageProxy.getImageInfo().getRotationDegrees()
             );
 
-            // Mô hình 1: Image Labeling
+// Mô hình 1: Image Labeling
             Task<List<ImageLabel>> labelingTask =
                     imageLabeler.process(inputImage);
 
-            // Mô hình 2: Object Detection
+// Mô hình 2: Object Detection
             Task<List<DetectedObject>> detectionTask =
                     objectDetector.process(inputImage);
 
-            // Mô hình 3: Text Recognition (OCR)
+// Mô hình 3: OCR
             Task<Text> textTask =
                     textRecognizer.process(inputImage);
 
-            // Chờ cả ba mô hình hoàn thành
+// Chờ cả ba mô hình hoàn tất
             Tasks.whenAllComplete(
                     labelingTask,
                     detectionTask,
@@ -259,11 +343,14 @@ public class CameraService {
                     List<String> objectResults =
                             new ArrayList<>();
 
+                    List<AlertObjectInfo> alertObjectResults =
+                            new ArrayList<>();
+
                     String recognizedText = "";
 
-                    // =================================
-                    // 1. IMAGE LABELING
-                    // =================================
+// =================================
+// 1. IMAGE LABELING
+// =================================
 
                     if (labelingTask.isSuccessful()) {
 
@@ -279,7 +366,8 @@ public class CameraService {
                                     String result =
                                             label.getText() + " - "
                                                     + Math.round(
-                                                    label.getConfidence() * 100
+                                                    label.getConfidence()
+                                                            * 100
                                             ) + "%";
 
                                     labelResults.add(result);
@@ -292,9 +380,9 @@ public class CameraService {
                         }
                     }
 
-                    // =================================
-                    // 2. OBJECT DETECTION
-                    // =================================
+// =================================
+// 2. OBJECT DETECTION
+// =================================
 
                     if (detectionTask.isSuccessful()) {
 
@@ -303,13 +391,20 @@ public class CameraService {
 
                         if (detectedObjects != null) {
 
-                            for (DetectedObject object : detectedObjects) {
+                            for (DetectedObject object
+                                    : detectedObjects) {
 
-                                Rect box = object.getBoundingBox();
+                                Rect box =
+                                        object.getBoundingBox();
 
-                                String objectName = "Chưa phân loại";
-                                String confidence = "";
+                                String objectName =
+                                        "Chưa phân loại";
 
+                                float objectConfidence = 0f;
+
+                                String confidenceText = "";
+
+// Lấy nhãn object
                                 if (!object.getLabels().isEmpty()) {
 
                                     DetectedObject.Label label =
@@ -317,14 +412,18 @@ public class CameraService {
 
                                     objectName = label.getText();
 
-                                    confidence = " - "
+                                    objectConfidence =
+                                            label.getConfidence();
+
+                                    confidenceText = " - "
                                             + Math.round(
-                                            label.getConfidence() * 100
+                                            objectConfidence * 100
                                     ) + "%";
                                 }
 
+// Kết quả hiển thị cho SEE
                                 String result =
-                                        objectName + confidence
+                                        objectName + confidenceText
                                                 + " | Vị trí: ("
                                                 + box.left + ", "
                                                 + box.top + ") - ("
@@ -332,17 +431,27 @@ public class CameraService {
                                                 + box.bottom + ")";
 
                                 objectResults.add(result);
+
+// Dữ liệu riêng cho ALERT
+                                alertObjectResults.add(
+                                        new AlertObjectInfo(
+                                                box,
+                                                objectName,
+                                                objectConfidence
+                                        )
+                                );
                             }
                         }
                     }
 
-                    // =================================
-                    // 3. TEXT RECOGNITION (OCR)
-                    // =================================
+// =================================
+// 3. TEXT RECOGNITION (OCR)
+// =================================
 
                     if (textTask.isSuccessful()) {
 
-                        Text textResult = textTask.getResult();
+                        Text textResult =
+                                textTask.getResult();
 
                         if (textResult != null) {
 
@@ -351,9 +460,9 @@ public class CameraService {
                         }
                     }
 
-                    // =================================
-                    // KIỂM TRA LỖI
-                    // =================================
+// =================================
+// 4. KIỂM TRA LỖI
+// =================================
 
                     if (!labelingTask.isSuccessful()) {
 
@@ -378,13 +487,29 @@ public class CameraService {
 
                     } else {
 
-                        // Gộp kết quả của ba mô hình
+// =================================
+// 5. CALLBACK ALERT
+// =================================
+
+                        if (alertListener != null) {
+
+                            alertListener.onAlertObjectsDetected(
+                                    new ArrayList<>(
+                                            alertObjectResults
+                                    )
+                            );
+                        }
+
+// =================================
+// 6. CALLBACK SEE
+// =================================
+
                         String currentResult =
                                 labelResults.toString()
                                         + objectResults.toString()
                                         + recognizedText;
 
-                        // Chỉ gửi kết quả khi nội dung thay đổi
+// Chỉ gửi SEE khi kết quả thay đổi
                         if (!currentResult.equals(lastResult)) {
 
                             lastResult = currentResult;
@@ -409,7 +534,7 @@ public class CameraService {
 
                 } finally {
 
-                    // Đóng frame sau khi ba mô hình hoàn tất
+// Đóng frame
                     imageProxy.close();
 
                     isProcessing.set(false);
@@ -428,32 +553,45 @@ public class CameraService {
         }
     }
 
-    // Gửi lỗi về Activity
+// =========================================
+// NOTIFY ERROR
+// =========================================
+
     private void notifyError(String error) {
 
         if (listener != null && !released) {
+
             listener.onError(error);
         }
     }
 
-    // Dừng camera
+// =========================================
+// STOP CAMERA
+// =========================================
+
     public void stopCamera() {
 
         if (imageAnalysis != null) {
+
             imageAnalysis.clearAnalyzer();
             imageAnalysis = null;
         }
 
         if (cameraProvider != null) {
+
             cameraProvider.unbindAll();
             cameraProvider = null;
         }
 
         preview = null;
         listener = null;
+        alertListener = null;
     }
 
-    // Giải phóng tài nguyên
+// =========================================
+// RELEASE RESOURCES
+// =========================================
+
     public void release() {
 
         if (released) {
