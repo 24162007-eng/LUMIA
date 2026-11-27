@@ -222,18 +222,15 @@ public class VoiceCommandService {
                 callback.onUnknown(list.get(0));
             }
         }
-
+      
         @Override
         public void onError(int error) {
+            android.util.Log.e("VoiceCmd", "SpeechRecognizer error = " + error);
 
             if (error == SpeechRecognizer.ERROR_NO_MATCH
                     || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
 
                 speech.speak("Mình chưa nghe rõ, bạn nói lại nhé");
-
-            } else {
-
-                speech.speak("Lỗi nhận diện giọng nói");
             }
         }
 
