@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/featureRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F3F8F6"
+    tools:context=".SeeActivity">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:id="@+id/featureToolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#123B36"
+        android:gravity="center_vertical"
+        android:minHeight="64dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="16dp">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/btnCloseCamera"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/screen_back"
+            app:srcCompat="@drawable/ic_lumia_back" />
+
+        <TextView
+            style="@style/Widget.Lumia.FeatureHeading"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/see_title"
+            android:accessibilityHeading="true"
+            android:textColor="#FFFFFF" />
+    </LinearLayout>
+
+    <!-- Main content -->
+    <ScrollView
+        android:id="@+id/featureScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Camera preview -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:background="@drawable/bg_feature_camera"
+                android:clipToOutline="true">
+
+                <androidx.camera.view.PreviewView
+                    android:id="@+id/cameraPreview"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:keepScreenOn="true"
+                    app:implementationMode="compatible" />
+            </FrameLayout>
+
+            <!-- Detection result -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_feature_card"
+                android:padding="16dp"
+                android:layout_marginTop="12dp"
+                android:minHeight="104dp"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/tvDetectionResult"
+                    style="@style/Widget.Lumia.FeatureText"
+                    android:text="@string/see_ready"
+                    android:gravity="center"
+                    android:textAlignment="center" />
+            </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="12dp" />
+
+            <!-- Capture button -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCapture"
+                style="@style/Widget.Lumia.FeatureAction"
+                android:text="@string/see_start" />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="12dp" />
+
+            <!-- OCR and repeat recognition -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnReadText"
+                    style="@style/Widget.Lumia.FeatureOutline"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/home_ocr" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRepeatRecognition"
+                    style="@style/Widget.Lumia.FeatureOutline"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:text="@string/see_repeat" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+</LinearLayout>

@@ -1,5 +1,6 @@
+
 [versions]
-agp = "9.5.0"
+agp = "9.5.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -7,6 +8,21 @@ appcompat = "1.6.1"
 material = "1.10.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.1.4"
+
+# CameraX
+camerax = "1.6.2"
+
+# Google ML Kit
+mlkitImageLabeling = "17.0.9"
+mlkitObjectDetection = "17.0.2"
+mlkitTextRecognition = "16.0.1"
+
+# Firebase
+firebaseBom = "35.1.0"
+
+# Google Services
+googleServices = "4.5.0"
+
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -17,6 +33,25 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
+# CameraX
+camera-camera2 = { group = "androidx.camera", name = "camera-camera2", version.ref = "camerax" }
+camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "camerax" }
+camera-view = { group = "androidx.camera", name = "camera-view", version.ref = "camerax" }
+
+# Google ML Kit - Image Labeling
+mlkit-image-labeling = { group = "com.google.mlkit", name = "image-labeling", version.ref = "mlkitImageLabeling" }
+
+# Google ML Kit - Object Detection
+mlkit-objectDetection = { group = "com.google.mlkit", name = "object-detection", version.ref = "mlkitObjectDetection" }
+
+# Firebase
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
+
+mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }
+
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }

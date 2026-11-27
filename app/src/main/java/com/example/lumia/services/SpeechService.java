@@ -1,3 +1,4 @@
+
 package com.example.lumia.services;
 
 import android.content.Context;
@@ -7,20 +8,23 @@ import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Log;
+
 import java.util.Locale;
 
 public class SpeechService implements TextToSpeech.OnInitListener {
+
     private static final String TAG = "SpeechService";
 
-    public static final int PRIORITY_NORMAL = 0;   // kết quả SEE, OCR, dẫn đường
-    public static final int PRIORITY_ALERT  = 1;   // cảnh báo vật cản
+    public static final int PRIORITY_NORMAL = 0;
+    public static final int PRIORITY_ALERT = 1;
 
-    private static final long ALERT_COOLDOWN_MS = 2000;   // chống lặp cảnh báo
+    private static final long ALERT_COOLDOWN_MS = 2000;
 
     private static SpeechService instance;
 
     private final Context appContext;
     private final Handler main = new Handler(Looper.getMainLooper());
+
     private TextToSpeech tts;
     private boolean ready = false;
 
@@ -30,8 +34,10 @@ public class SpeechService implements TextToSpeech.OnInitListener {
 
     private volatile int currentPriority = PRIORITY_NORMAL;
     private volatile boolean speakingNow = false;
+
     private long lastAlertTime = 0;
 
+    // Singleton
     public static synchronized SpeechService getInstance(Context context) {
         if (instance == null) {
             instance = new SpeechService(context.getApplicationContext());
@@ -39,94 +45,192 @@ public class SpeechService implements TextToSpeech.OnInitListener {
         return instance;
     }
 
-    private SpeechService(Context context) {
-        this.appContext = context;
-        tts = new TextToSpeech(context, this);
+    // Khởi tạo TTS
+    public SpeechService(Context context) {
+        appContext = context.getApplicationContext();
+
+        tts = new TextToSpeech(appContext, this);
     }
 
     @Override
     public void onInit(int status) {
-        if (status != TextToSpeech.SUCCESS) {
+
+        if (status != TextToSpeech.SUCCESS || tts == null) {
             Log.e(TAG, "Khởi tạo TTS thất bại");
             return;
         }
+
         int result = tts.setLanguage(new Locale("vi", "VN"));
+
         if (result == TextToSpeech.LANG_MISSING_DATA
                 || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+
             Log.e(TAG, "Thiếu dữ liệu giọng tiếng Việt");
-            Intent i = new Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            appContext.startActivity(i);
+
+            Intent intent = new Intent(
+                    TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA
+            );
+
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            appContext.startActivity(intent);
             return;
         }
-        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override public void onStart(String id) { speakingNow = true; }
-            @Override public void onDone(String id)  { speakingNow = false; currentPriority = PRIORITY_NORMAL; }
-            @Override public void onError(String id) { speakingNow = false; currentPriority = PRIORITY_NORMAL; }
-        });
+
+        tts.setOnUtteranceProgressListener(
+                new UtteranceProgressListener() {
+
+                    @Override
+                    public void onStart(String id) {
+                        speakingNow = true;
+                    }
+
+                    @Override
+                    public void onDone(String id) {
+                        speakingNow = false;
+                        currentPriority = PRIORITY_NORMAL;
+                    }
+
+                    @Override
+                    public void onError(String id) {
+                        speakingNow = false;
+                        currentPriority = PRIORITY_NORMAL;
+                    }
+                }
+        );
+
         ready = true;
+
+        // Đọc nội dung đã yêu cầu trước khi TTS sẵn sàng
         if (pendingText != null) {
-            speak(pendingText, pendingPriority);
+            String text = pendingText;
+            int priority = pendingPriority;
+
             pendingText = null;
+            pendingPriority = PRIORITY_NORMAL;
+
+            speak(text, priority);
         }
     }
 
-    /** Đọc thông tin thường (SEE, OCR, dẫn đường). Giữ nguyên chữ ký cũ. */
-    public void speak(String text) {
-        speak(text, PRIORITY_NORMAL);
+    // Đọc văn bản thông thường
+    public boolean speak(String text) {
+
+        return speak(text, PRIORITY_NORMAL);
     }
 
-    /** Đọc với mức ưu tiên. Cảnh báo dùng PRIORITY_ALERT. */
-    public synchronized void speak(String text, int priority) {
-        if (text == null || text.trim().isEmpty()) return;
-        if (!ready) {
+    // Đọc văn bản có mức độ ưu tiên
+    public synchronized boolean speak(String text, int priority) {
+
+        if (text == null || text.trim().isEmpty()) {
+            return false;
+        }
+
+        lastText = text;
+
+        // TTS chưa khởi tạo xong
+        if (!ready || tts == null) {
             pendingText = text;
             pendingPriority = priority;
-            lastText = text;
-            return;
+            return true;
         }
 
-        // 1. Đang đọc cảnh báo thì thông tin thường không được cắt ngang
-        if (speakingNow && currentPriority == PRIORITY_ALERT && priority < PRIORITY_ALERT) {
-            return;
+        // Không cắt ngang cảnh báo để đọc thông tin thường
+        if (speakingNow
+                && currentPriority == PRIORITY_ALERT
+                && priority < PRIORITY_ALERT) {
+            return false;
         }
 
-        // 2. Chống lặp cảnh báo liên tục
+        // Chống lặp cảnh báo liên tục
         if (priority == PRIORITY_ALERT) {
+
             long now = System.currentTimeMillis();
-            if (now - lastAlertTime < ALERT_COOLDOWN_MS) return;
+
+            if (now - lastAlertTime < ALERT_COOLDOWN_MS) {
+                return false;
+            }
+
             lastAlertTime = now;
         }
 
-        // 3. Không đọc lại đúng câu đang đọc
-        if (speakingNow && text.equals(lastText) && priority == currentPriority) return;
+        // Không đọc lại cùng nội dung cùng mức ưu tiên
+        if (speakingNow
+                && text.equals(lastText)
+                && priority == currentPriority) {
+            return false;
+        }
 
         currentPriority = priority;
         speakingNow = true;
+
         lastText = text;
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "lumia-" + System.currentTimeMillis());
+
+        int result = tts.speak(
+                text,
+                TextToSpeech.QUEUE_FLUSH,
+                null,
+                "lumia-" + System.currentTimeMillis()
+        );
+
+        if (result != TextToSpeech.SUCCESS) {
+            speakingNow = false;
+            currentPriority = PRIORITY_NORMAL;
+            return false;
+        }
+
+        return true;
     }
 
-    public void stop() {
-        if (tts != null) tts.stop();
-        speakingNow = false;
-        currentPriority = PRIORITY_NORMAL;
-    }
+    // Đọc lại nội dung gần nhất
+    public boolean repeatLast() {
 
-    /** Đọc lại câu gần nhất, luôn được phép vì do người dùng yêu cầu. */
-    public void repeatLast() {
-        if (lastText.isEmpty()) return;
-        String t = lastText;
+        if (lastText == null || lastText.trim().isEmpty()) {
+            return false;
+        }
+
+        String text = lastText;
+
         stop();
-        speak(t, PRIORITY_NORMAL);
+
+        return speak(text, PRIORITY_NORMAL);
     }
 
+    // Kiểm tra đang đọc hay không
     public boolean isSpeaking() {
         return speakingNow;
     }
 
-    public void shutdown() {
-        if (tts != null) { tts.stop(); tts.shutdown(); }
-        instance = null;
+    // Điều chỉnh tốc độ đọc
+    public void setRate(float rate) {
+
+        if (tts != null && ready) {
+            tts.setSpeechRate(rate);
+        }
+    }
+
+    // Dừng đọc
+    public void stop() {
+
+        if (tts != null) {
+            tts.stop();
+        }
+
+        speakingNow = false;
+        currentPriority = PRIORITY_NORMAL;
+    }
+
+    // Giải phóng tài nguyên
+    public void close() {
+
+        ready = false;
+        pendingText = null;
+        speakingNow = false;
+        currentPriority = PRIORITY_NORMAL;
+
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+            tts = null;
+        }
     }
 }
